@@ -14,7 +14,170 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_reflections: {
+        Row: {
+          created_at: string | null
+          day_summary: string | null
+          id: string
+          key_takeaway: string | null
+          mood: string | null
+          reflection_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day_summary?: string | null
+          id?: string
+          key_takeaway?: string | null
+          mood?: string | null
+          reflection_date?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          day_summary?: string | null
+          id?: string
+          key_takeaway?: string | null
+          mood?: string | null
+          reflection_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      moon_phases: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          phase_date: string
+          phase_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          phase_date: string
+          phase_type: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          phase_date?: string
+          phase_type?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          streak_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+          streak_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          streak_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      session_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          session_id: string | null
+          session_title: string
+          session_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          session_id?: string | null
+          session_title: string
+          session_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          session_id?: string | null
+          session_title?: string
+          session_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "yoga_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yoga_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          recurrence: string | null
+          scheduled_time: string | null
+          session_type: string
+          time_of_day: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          recurrence?: string | null
+          scheduled_time?: string | null
+          session_type: string
+          time_of_day: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          recurrence?: string | null
+          scheduled_time?: string | null
+          session_type?: string
+          time_of_day?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
