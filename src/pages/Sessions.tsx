@@ -22,7 +22,13 @@ interface YogaSession {
 
 const Sessions = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
   const [sessions, setSessions] = useState<YogaSession[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newSession, setNewSession] = useState({

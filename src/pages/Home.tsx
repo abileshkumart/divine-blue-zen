@@ -21,7 +21,13 @@ interface MoonPhase {
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
   const [sessions, setSessions] = useState<YogaSession[]>([]);
   const [todayMoonPhase, setTodayMoonPhase] = useState<MoonPhase | null>(null);
   const [streakCount, setStreakCount] = useState(0);

@@ -19,7 +19,13 @@ interface SessionLog {
 
 const Calendar = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [moonPhases, setMoonPhases] = useState<MoonPhase[]>([]);
   const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);

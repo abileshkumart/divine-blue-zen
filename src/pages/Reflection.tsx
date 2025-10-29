@@ -19,11 +19,17 @@ const moods = [
 
 const Reflection = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
   const [selectedMood, setSelectedMood] = useState('');
   const [daySummary, setDaySummary] = useState('');
   const [keyTakeaway, setKeyTakeaway] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [hasReflection, setHasReflection] = useState(false);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ const Reflection = () => {
   const saveReflection = async () => {
     if (!user) return;
     
-    setLoading(true);
+    setSaving(true);
     const today = new Date().toISOString().split('T')[0];
 
     const reflectionData = {
@@ -68,7 +74,7 @@ const Reflection = () => {
         onConflict: 'user_id,reflection_date'
       });
 
-    setLoading(false);
+    setSaving(false);
 
     if (error) {
       toast.error("Failed to save reflection");
@@ -146,10 +152,10 @@ const Reflection = () => {
 
         <Button
           onClick={saveReflection}
-          disabled={loading}
+          disabled={saving}
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12 rounded-full shadow-glow"
         >
-          {loading ? 'Saving...' : hasReflection ? 'Update Reflection' : 'Save Reflection'}
+          {saving ? 'Saving...' : hasReflection ? 'Update Reflection' : 'Save Reflection'}
         </Button>
       </main>
     </div>

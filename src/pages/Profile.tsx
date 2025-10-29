@@ -14,7 +14,13 @@ interface Profile {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [totalSessions, setTotalSessions] = useState(0);
 
