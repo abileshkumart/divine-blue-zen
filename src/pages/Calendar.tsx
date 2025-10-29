@@ -2,11 +2,28 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+interface MoonPhase {
+  phase_date: string;
+  phase_type: string;
+  description: string;
+}
+
+interface SessionLog {
+  completed_at: string;
+}
 
 const Calendar = () => {
   const navigate = useNavigate();
-  const [currentMonth] = useState(new Date());
+  const { user } = useAuth();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [moonPhases, setMoonPhases] = useState<MoonPhase[]>([]);
+  const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);
+  const [selectedMoonPhase, setSelectedMoonPhase] = useState<MoonPhase | null>(null);
 
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
@@ -22,9 +39,52 @@ const Calendar = () => {
 
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  // Mock data for completed days and moon phases
-  const completedDays = [1, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 21];
-  const moonDays = [1, 15, 30]; // Amavasai and Pournami
+  useEffect(() => {
+    fetchMoonPhases();
+    if (user) {
+      fetchSessionLogs();
+    }
+  }, [currentMonth, user]);
+
+  const fetchMoonPhases = async () => {
+    const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+    const { data } = await supabase
+      .from('moon_phases')
+      .select('*')
+      .gte('phase_date', startDate.toISOString().split('T')[0])
+      .lte('phase_date', endDate.toISOString().split('T')[0]);
+
+    setMoonPhases(data || []);
+  };
+
+  const fetchSessionLogs = async () => {
+    const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+    const { data } = await supabase
+      .from('session_logs')
+      .select('completed_at')
+      .gte('completed_at', startDate.toISOString())
+      .lte('completed_at', endDate.toISOString());
+
+    setSessionLogs(data || []);
+  };
+
+  const changeMonth = (direction: number) => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + direction, 1));
+  };
+
+  const completedDays = sessionLogs.map(log => 
+    new Date(log.completed_at).getDate()
+  ).filter((v, i, a) => a.indexOf(v) === i);
+
+  const moonDays = moonPhases.reduce((acc, phase) => {
+    const day = new Date(phase.phase_date).getDate();
+    acc[day] = phase;
+    return acc;
+  }, {} as Record<number, MoonPhase>);
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const emptyDays = Array.from({ length: firstDayOfMonth }, (_, i) => i);
@@ -47,11 +107,11 @@ const Calendar = () => {
         </div>
         
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => changeMonth(-1)}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <h2 className="text-lg font-semibold">{monthName}</h2>
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => changeMonth(1)}>
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
@@ -88,17 +148,22 @@ const Calendar = () => {
             ))}
             {days.map((day) => {
               const isCompleted = completedDays.includes(day);
-              const isMoonDay = moonDays.includes(day);
-              const isToday = day === new Date().getDate();
+              const moonPhase = moonDays[day];
+              const isMoonDay = !!moonPhase;
+              const isToday = day === new Date().getDate() && 
+                currentMonth.getMonth() === new Date().getMonth() &&
+                currentMonth.getFullYear() === new Date().getFullYear();
 
               return (
                 <button
                   key={day}
+                  onClick={() => isMoonDay && setSelectedMoonPhase(moonPhase)}
                   className={`
                     aspect-square rounded-lg flex flex-col items-center justify-center relative
                     transition-all duration-200 hover:scale-105
                     ${isCompleted ? 'bg-accent/20 border-2 border-accent shadow-glow' : 'bg-secondary/30 border border-border/30'}
                     ${isToday ? 'ring-2 ring-indigo' : ''}
+                    ${isMoonDay ? 'cursor-pointer' : ''}
                   `}
                 >
                   <span className={`text-sm font-semibold ${isCompleted ? 'text-accent' : 'text-foreground'}`}>
@@ -145,6 +210,28 @@ const Calendar = () => {
           </Card>
         </div>
       </main>
+
+      {/* Moon Phase Dialog */}
+      <Dialog open={!!selectedMoonPhase} onOpenChange={() => setSelectedMoonPhase(null)}>
+        <DialogContent className="bg-card border-accent/40">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              <Moon className="w-8 h-8 text-indigo mx-auto mb-2 animate-glow-pulse" />
+              {selectedMoonPhase?.phase_type === 'pournami' ? 'Pournami (Full Moon)' : 'Amavasai (New Moon)'}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-center text-muted-foreground">
+            {selectedMoonPhase?.description}
+          </p>
+          <p className="text-center text-sm text-muted-foreground">
+            {selectedMoonPhase && new Date(selectedMoonPhase.phase_date).toLocaleDateString('default', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </p>
+        </DialogContent>
+      </Dialog>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4">

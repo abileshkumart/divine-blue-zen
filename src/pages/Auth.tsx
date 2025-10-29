@@ -1,22 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import onboardingBg from "@/assets/onboarding-bg.jpg";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { signIn, signUp, user } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication with Lovable Cloud
-    navigate('/home');
+    
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = isLogin 
+      ? await signIn(email, password)
+      : await signUp(email, password, displayName);
+
+    setLoading(false);
+
+    if (error) {
+      toast.error(error.message || "Authentication failed");
+    }
   };
 
   return (
@@ -62,6 +88,20 @@ const Auth = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div className="space-y-2">
+              <Label htmlFor="displayName" className="text-sm font-medium">Display Name</Label>
+              <Input
+                id="displayName"
+                type="text"
+                placeholder="Your name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="bg-background/50 border-accent/30 focus:border-accent"
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium">Email</Label>
             <div className="relative">
@@ -90,6 +130,7 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10 bg-background/50 border-accent/30 focus:border-accent"
                 required
+                minLength={6}
               />
             </div>
           </div>
@@ -108,9 +149,10 @@ const Auth = () => {
 
           <Button
             type="submit"
+            disabled={loading}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12 rounded-full shadow-glow hover:shadow-float transition-all duration-300 hover:scale-105"
           >
-            {isLogin ? 'Sign In' : 'Create Account'}
+            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
           </Button>
         </form>
 

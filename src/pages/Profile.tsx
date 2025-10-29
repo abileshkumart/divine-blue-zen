@@ -1,11 +1,52 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Settings, TrendingUp, Award, Flame } from "lucide-react";
+import { ChevronLeft, Settings, TrendingUp, Award, Flame, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import moonBg from "@/assets/moon-bg.jpg";
+
+interface Profile {
+  display_name: string;
+  streak_count: number;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [totalSessions, setTotalSessions] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      fetchTotalSessions();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user!.id)
+      .single();
+
+    setProfile(data);
+  };
+
+  const fetchTotalSessions = async () => {
+    const { count } = await supabase
+      .from('session_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user!.id);
+
+    setTotalSessions(count || 0);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -32,9 +73,10 @@ const Profile = () => {
           <Button
             variant="ghost"
             size="icon"
+            onClick={handleSignOut}
             className="rounded-full bg-background/20 backdrop-blur-md hover:bg-background/40"
           >
-            <Settings className="w-5 h-5 text-white" />
+            <LogOut className="w-5 h-5 text-white" />
           </Button>
         </div>
       </div>
@@ -43,11 +85,11 @@ const Profile = () => {
       <div className="px-6 -mt-16 relative z-20">
         <div className="flex items-end gap-4 mb-6">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-indigo flex items-center justify-center text-3xl font-bold shadow-float border-4 border-background">
-            YJ
+            {(profile?.display_name || user?.email || 'YJ').substring(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 pb-2">
-            <h1 className="text-2xl font-bold mb-1">Yoga Journey</h1>
-            <p className="text-sm text-muted-foreground">Member since Jan 2025</p>
+            <h1 className="text-2xl font-bold mb-1">{profile?.display_name || user?.email?.split('@')[0] || 'Yoga Journey'}</h1>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
         </div>
 
@@ -55,19 +97,19 @@ const Profile = () => {
         <div className="grid grid-cols-3 gap-3 mb-6">
           <Card className="p-4 bg-gradient-to-br from-accent/20 to-transparent border-accent/40 text-center">
             <Flame className="w-6 h-6 text-accent mx-auto mb-2" />
-            <div className="text-2xl font-bold text-accent">7</div>
+            <div className="text-2xl font-bold text-accent">{profile?.streak_count || 0}</div>
             <div className="text-xs text-muted-foreground">Day Streak</div>
           </Card>
           
           <Card className="p-4 bg-gradient-to-br from-indigo/20 to-transparent border-indigo/40 text-center">
             <Award className="w-6 h-6 text-indigo mx-auto mb-2" />
-            <div className="text-2xl font-bold text-indigo">12</div>
+            <div className="text-2xl font-bold text-indigo">{Math.floor(totalSessions / 10)}</div>
             <div className="text-xs text-muted-foreground">Achievements</div>
           </Card>
           
           <Card className="p-4 bg-gradient-to-br from-glow/20 to-transparent border-glow/40 text-center">
             <TrendingUp className="w-6 h-6 text-glow mx-auto mb-2" />
-            <div className="text-2xl font-bold text-glow">142</div>
+            <div className="text-2xl font-bold text-glow">{totalSessions}</div>
             <div className="text-xs text-muted-foreground">Sessions</div>
           </Card>
         </div>
