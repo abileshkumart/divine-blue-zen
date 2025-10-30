@@ -6,6 +6,13 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import mandalaPattern from "@/assets/mandala-pattern.jpg";
+import WeeklyCalendarView from "@/components/WeeklyCalendarView";
+
+interface Profile {
+  id: string;
+  first_name: string;
+  streak_count: number;
+}
 
 interface YogaSession {
   id: string;
@@ -17,42 +24,53 @@ interface YogaSession {
 interface MoonPhase {
   phase_type: string;
   description: string;
+  phase_date: string;
+}
+
+interface UpcomingMoonPhases {
+  pournami: MoonPhase[];
+  amavasai: MoonPhase[];
 }
 
 const Home = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
-  const [sessions, setSessions] = useState<YogaSession[]>([]);
-  const [todayMoonPhase, setTodayMoonPhase] = useState<MoonPhase | null>(null);
-  const [streakCount, setStreakCount] = useState(0);
-  const [totalSessions, setTotalSessions] = useState(0);
 
   useEffect(() => {
     if (user) {
       fetchUserData();
       fetchSessions();
       fetchTodayMoonPhase();
+      fetchUpcomingMoonPhases();
     }
   }, [user]);
+  const [sessions, setSessions] = useState<YogaSession[]>([]);
+  const [todayMoonPhase, setTodayMoonPhase] = useState<MoonPhase | null>(null);
+  const [streakCount, setStreakCount] = useState(0);
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [upcomingPhases, setUpcomingPhases] = useState<UpcomingMoonPhases>({ pournami: [], amavasai: [] });
+
   const fetchUserData = async () => {
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('streak_count')
+      .from('profiles' as any)
+      .select('streak_count, first_name')
       .eq('id', user!.id)
       .single();
 
     if (profile) {
-      setStreakCount(profile.streak_count || 0);
+      setUserName((profile as any).first_name || "");
+      setStreakCount((profile as any).streak_count || 0);
     }
 
     const { count } = await supabase
-      .from('session_logs')
+      .from('session_logs' as any)
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user!.id);
 
@@ -81,6 +99,23 @@ const Home = () => {
     setTodayMoonPhase(data);
   };
 
+  const fetchUpcomingMoonPhases = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from('moon_phases')
+      .select('*')
+      .gte('phase_date', today)
+      .order('phase_date', { ascending: true })
+      .limit(6);
+
+    if (data) {
+      setUpcomingPhases({
+        pournami: data.filter(phase => phase.phase_type === 'pournami'),
+        amavasai: data.filter(phase => phase.phase_type === 'amavasai')
+      });
+    }
+  };
+
   const getMoonDisplay = () => {
     if (todayMoonPhase) {
       return {
@@ -91,17 +126,51 @@ const Home = () => {
     return { phase: 'Waxing Crescent', icon: '🌒' };
   };
 
+  const getTimeBasedIcon = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return <Sunrise className="w-6 h-6 text-yellow-500" />;
+    if (hour >= 12 && hour < 18) return <Sparkles className="w-6 h-6 text-accent" />;
+    if (hour >= 18 && hour < 22) return <Sunset className="w-6 h-6 text-orange-500" />;
+    return <Moon className="w-6 h-6 text-indigo-400" />;
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 18) return "Good afternoon";
+    if (hour >= 18 && hour < 22) return "Good evening";
+    return "Good night";
+  };
+
+  const getWellnessQuote = () => {
+    const quotes = [
+      "Time to nurture your inner peace",
+      "Your journey to tranquility begins here",
+      "Let's create harmony in mind and body",
+      "Embrace the calm within",
+      "A moment of mindfulness awaits",
+    ];
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  };
+
   const moonData = getMoonDisplay();
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="p-6 flex items-center justify-between border-b border-border/50 backdrop-blur-sm bg-card/50">
-        <div>
-          <h1 className="text-2xl font-bold text-glow">Namaste</h1>
-          <p className="text-sm text-muted-foreground">
-            {user ? `Welcome back, ${user.email?.split('@')[0]}` : 'Welcome back to your practice'}
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="mt-1">
+            {getTimeBasedIcon()}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-glow flex items-center gap-2">
+              {getGreeting()}{userName ? `, ${userName}` : ''}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {getWellnessQuote()}
+            </p>
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -115,6 +184,14 @@ const Home = () => {
 
       {/* Main Content */}
       <main className="p-6 space-y-6 pb-24">
+        {/* Weekly Calendar View - NEW */}
+        <Card 
+          className="p-5 bg-card/80 backdrop-blur-sm border-accent/30 shadow-card animate-fade-in-up"
+          style={{ animationDelay: '0.05s' }}
+        >
+          <WeeklyCalendarView />
+        </Card>
+
         {/* Daily Affirmation */}
         <Card 
           className="p-6 bg-gradient-to-br from-card to-secondary border-accent/30 shadow-glow relative overflow-hidden animate-fade-in-up"
@@ -151,43 +228,89 @@ const Home = () => {
           className="p-6 bg-card/80 backdrop-blur-sm border-indigo/30 shadow-card animate-fade-in-up"
           style={{ animationDelay: '0.2s' }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-5xl animate-float">{moonData.icon}</div>
-              <div>
-                <h3 className="text-lg font-semibold">{moonData.phase}</h3>
-                <p className="text-sm text-muted-foreground">Perfect for meditation</p>
+          <div className="flex flex-col space-y-4">
+            {/* Current Moon Phase */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-5xl animate-float">{moonData.icon}</div>
+                <div>
+                  <h3 className="text-lg font-semibold">{moonData.phase}</h3>
+                  <p className="text-sm text-muted-foreground">Today's Moon Phase</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/calendar')}
+                className="rounded-full hover:bg-indigo/20"
+              >
+                <CalendarIcon className="w-5 h-5 text-indigo" />
+              </Button>
+            </div>
+
+            {/* Upcoming Phases */}
+            <div className="border-t border-border/50 pt-4 mt-2">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Pournami Dates */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <span className="text-lg">🌕</span>
+                    Upcoming Pournami
+                  </h4>
+                  <div className="space-y-1">
+                    {upcomingPhases.pournami.slice(0, 2).map((phase) => (
+                      <p key={phase.phase_date} className="text-xs text-muted-foreground">
+                        {new Date(phase.phase_date).toLocaleDateString('default', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Amavasai Dates */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <span className="text-lg">🌑</span>
+                    Upcoming Amavasai
+                  </h4>
+                  <div className="space-y-1">
+                    {upcomingPhases.amavasai.slice(0, 2).map((phase) => (
+                      <p key={phase.phase_date} className="text-xs text-muted-foreground">
+                        {new Date(phase.phase_date).toLocaleDateString('default', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/calendar')}
-              className="rounded-full hover:bg-indigo/20"
-            >
-              <CalendarIcon className="w-5 h-5 text-indigo" />
-            </Button>
           </div>
         </Card>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
           <Card 
-            className="p-5 bg-gradient-to-br from-accent/20 to-transparent border-accent/40 hover:shadow-glow transition-all cursor-pointer"
+            className="p-5 bg-gradient-to-br from-accent/20 to-transparent border-accent/40 hover:shadow-glow transition-all cursor-pointer animate-fade-in-up"
             onClick={() => navigate('/sessions')}
+            style={{ animationDelay: '0.3s' }}
           >
             <ListTodo className="w-8 h-8 text-accent mb-3" />
-            <h3 className="font-semibold text-sm">Yoga Sessions</h3>
-            <p className="text-xs text-muted-foreground">Manage schedule</p>
+            <h3 className="font-semibold text-sm">Manage Sessions</h3>
+            <p className="text-xs text-muted-foreground">Create & edit</p>
           </Card>
 
           <Card 
-            className="p-5 bg-gradient-to-br from-indigo/20 to-transparent border-indigo/40 hover:shadow-glow transition-all cursor-pointer"
-            onClick={() => navigate('/reflection')}
+            className="p-5 bg-gradient-to-br from-indigo/20 to-transparent border-indigo/40 hover:shadow-glow transition-all cursor-pointer animate-fade-in-up"
+            onClick={() => navigate('/calendar')}
+            style={{ animationDelay: '0.35s' }}
           >
-            <BookOpen className="w-8 h-8 text-indigo mb-3" />
-            <h3 className="font-semibold text-sm">Daily Reflection</h3>
-            <p className="text-xs text-muted-foreground">Journal today</p>
+            <CalendarIcon className="w-8 h-8 text-indigo mb-3" />
+            <h3 className="font-semibold text-sm">Full Calendar</h3>
+            <p className="text-xs text-muted-foreground">Month view</p>
           </Card>
         </div>
 

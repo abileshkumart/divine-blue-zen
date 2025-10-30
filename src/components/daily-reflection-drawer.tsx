@@ -3,14 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronDown, Smile, Frown, Meh, Zap, Moon } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { ChevronDown, Smile, Frown, Meh, Zap, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
@@ -24,12 +22,14 @@ const moods = [
   { value: 'stressed', label: 'Stressed', icon: Frown },
 ];
 
-const Reflection = () => {
-  const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const location = useLocation();
-  const reflectionDate = location.state?.date || new Date().toISOString().split('T')[0];
-  
+interface DailyReflectionDrawerProps {
+  date: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const DailyReflectionDrawer = ({ date, isOpen, onClose }: DailyReflectionDrawerProps) => {
+  const { user } = useAuth();
   const [selectedMood, setSelectedMood] = useState('');
   const [daySummary, setDaySummary] = useState('');
   const [keyTakeaway, setKeyTakeaway] = useState('');
@@ -37,22 +37,16 @@ const Reflection = () => {
   const [hasReflection, setHasReflection] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (user) {
+    if (user && isOpen) {
       loadReflection();
     }
-  }, [user, reflectionDate]);
+  }, [user, date, isOpen]);
 
   const loadReflection = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('daily_reflections')
       .select('*')
-      .eq('reflection_date', reflectionDate)
+      .eq('reflection_date', date)
       .maybeSingle();
 
     if (data) {
@@ -60,6 +54,11 @@ const Reflection = () => {
       setDaySummary(data.day_summary || '');
       setKeyTakeaway(data.key_takeaway || '');
       setHasReflection(true);
+    } else {
+      setSelectedMood('');
+      setDaySummary('');
+      setKeyTakeaway('');
+      setHasReflection(false);
     }
   };
 
@@ -70,7 +69,7 @@ const Reflection = () => {
 
     const reflectionData = {
       user_id: user.id,
-      reflection_date: reflectionDate,
+      reflection_date: date,
       mood: selectedMood || null,
       day_summary: daySummary || null,
       key_takeaway: keyTakeaway || null,
@@ -91,10 +90,11 @@ const Reflection = () => {
 
     toast.success(hasReflection ? "Reflection updated! 📝" : "Reflection saved! 📝");
     setHasReflection(true);
+    onClose();
   };
 
   return (
-    <Drawer open={true} onOpenChange={() => navigate(-1)}>
+    <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="bg-background">
         <div className="mx-auto w-full max-w-2xl">
           <DrawerHeader className="text-center">
@@ -102,13 +102,13 @@ const Reflection = () => {
               variant="ghost"
               size="icon"
               className="absolute left-4 top-4 rounded-full md:hidden"
-              onClick={() => navigate(-1)}
+              onClick={onClose}
             >
               <ChevronDown className="w-6 h-6" />
             </Button>
             <DrawerTitle className="text-2xl font-bold text-glow">Daily Reflection</DrawerTitle>
             <p className="text-sm text-muted-foreground">
-              {new Date(reflectionDate).toLocaleDateString('default', {
+              {new Date(date).toLocaleDateString('default', {
                 weekday: 'long',
                 month: 'long',
                 day: 'numeric',
@@ -118,10 +118,10 @@ const Reflection = () => {
           </DrawerHeader>
 
           <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto pb-safe">
-            <Card className="p-6 bg-card/80 backdrop-blur-sm border-accent/20">
+            <Card className="p-6 bg-card/80 backdrop-blur-sm border-accent/20 animate-in slide-in-from-bottom-2">
               <Label className="text-lg font-semibold mb-4 block">How are you feeling today?</Label>
               <div className="grid grid-cols-5 gap-3">
-                {moods.map((mood) => {
+                {moods.map((mood, index) => {
                   const Icon = mood.icon;
                   return (
                     <button
@@ -134,6 +134,7 @@ const Reflection = () => {
                           : 'bg-secondary/30 border border-border/30 hover:bg-secondary/50'
                         }
                       `}
+                      style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <Icon className={`w-6 h-6 ${selectedMood === mood.value ? 'text-accent' : 'text-muted-foreground'}`} />
                       <span className={`text-xs ${selectedMood === mood.value ? 'text-accent font-semibold' : 'text-muted-foreground'}`}>
@@ -145,7 +146,10 @@ const Reflection = () => {
               </div>
             </Card>
 
-            <Card className="p-6 bg-card/80 backdrop-blur-sm border-accent/20">
+            <Card 
+              className="p-6 bg-card/80 backdrop-blur-sm border-accent/20 animate-in slide-in-from-bottom-4"
+              style={{ animationDelay: '200ms' }}
+            >
               <Label className="text-lg font-semibold mb-3 block">How was your day?</Label>
               <Textarea
                 value={daySummary}
@@ -155,7 +159,10 @@ const Reflection = () => {
               />
             </Card>
 
-            <Card className="p-6 bg-card/80 backdrop-blur-sm border-accent/20">
+            <Card 
+              className="p-6 bg-card/80 backdrop-blur-sm border-accent/20 animate-in slide-in-from-bottom-4"
+              style={{ animationDelay: '300ms' }}
+            >
               <Label className="text-lg font-semibold mb-3 block">What's your key takeaway?</Label>
               <Textarea
                 value={keyTakeaway}
@@ -168,7 +175,8 @@ const Reflection = () => {
             <Button
               onClick={saveReflection}
               disabled={saving}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12 rounded-full shadow-glow"
+              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12 rounded-full shadow-glow animate-in slide-in-from-bottom-4"
+              style={{ animationDelay: '400ms' }}
             >
               {saving ? 'Saving...' : hasReflection ? 'Update Reflection' : 'Save Reflection'}
             </Button>
@@ -178,5 +186,3 @@ const Reflection = () => {
     </Drawer>
   );
 };
-
-export default Reflection;

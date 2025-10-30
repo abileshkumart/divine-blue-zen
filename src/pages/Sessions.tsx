@@ -5,11 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { CreateSessionForm } from "@/components/CreateSessionForm";
+import { SessionCard } from "@/components/SessionCard";
+import type { Session } from "@/types/session";
 
 interface YogaSession {
   id: string;
@@ -30,7 +34,9 @@ const Sessions = () => {
     }
   }, [user, loading, navigate]);
   const [sessions, setSessions] = useState<YogaSession[]>([]);
+  const [newSessions, setNewSessions] = useState<Session[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isNewSessionDialogOpen, setIsNewSessionDialogOpen] = useState(false);
   const [newSession, setNewSession] = useState({
     title: "",
     session_type: "pranayama",
@@ -41,8 +47,26 @@ const Sessions = () => {
   useEffect(() => {
     if (user) {
       fetchSessions();
+      fetchNewSessions();
     }
   }, [user]);
+
+  const fetchNewSessions = async () => {
+    // This will work once the sessions table is created in Supabase
+    try {
+      const { data, error } = await supabase
+        .from('sessions' as any)
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setNewSessions(data as unknown as Session[]);
+      }
+    } catch (err) {
+      console.log('Sessions table not yet created. Please run SQL migration.');
+    }
+  };
 
   const fetchSessions = async () => {
     const { data, error } = await supabase
@@ -120,6 +144,15 @@ const Sessions = () => {
     toast.success("Session logged! 🧘‍♀️");
   };
 
+  const handleStartNewSession = (session: Session) => {
+    navigate('/session-tracker', { state: { session } });
+  };
+
+  const handleNewSessionSuccess = () => {
+    setIsNewSessionDialogOpen(false);
+    fetchNewSessions();
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="p-6 border-b border-border/50 backdrop-blur-sm bg-card/50">
@@ -132,7 +165,7 @@ const Sessions = () => {
           >
             <ChevronLeft className="w-6 h-6" />
           </Button>
-          <h1 className="text-2xl font-bold text-glow">Yoga Sessions</h1>
+          <h1 className="text-2xl font-bold text-glow">My Sessions</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="icon" className="rounded-full bg-accent hover:bg-accent/90">
@@ -204,8 +237,72 @@ const Sessions = () => {
         </div>
       </header>
 
-      <main className="p-6 space-y-4">
-        {sessions.length === 0 ? (
+      <main className="p-6">
+        <Tabs defaultValue="new" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="new">Practice Sessions (New)</TabsTrigger>
+            <TabsTrigger value="old">Yoga Sessions (Old)</TabsTrigger>
+          </TabsList>
+
+          {/* New Session Management */}
+          <TabsContent value="new" className="space-y-4">
+            {/* Info Banner */}
+            <Card className="p-4 bg-blue-500/10 border-blue-500/30">
+              <div className="flex gap-3">
+                <div className="text-3xl">🚀</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-400 mb-1">New Session Management System</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Enhanced session tracking with custom schedules, duration logging, and weekly summaries.
+                  </p>
+                  <p className="text-xs text-blue-400/80">
+                    Note: Run the SQL migration in Supabase to enable this feature. Check the terminal output for instructions.
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                {newSessions.length} active {newSessions.length === 1 ? 'session' : 'sessions'}
+              </p>
+              <Button
+                onClick={() => setIsNewSessionDialogOpen(true)}
+                className="bg-accent hover:bg-accent/90 rounded-full"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                New Session
+              </Button>
+            </div>
+
+            {newSessions.length === 0 ? (
+              <Card className="p-8 text-center bg-card/80 backdrop-blur-sm border-accent/20">
+                <p className="text-lg text-muted-foreground mb-2">Start Your Practice Journey</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Create custom sessions for yoga, meditation, stretching, or breathing exercises
+                </p>
+                <Button
+                  onClick={() => setIsNewSessionDialogOpen(true)}
+                  className="bg-accent hover:bg-accent/90"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Your First Session
+                </Button>
+              </Card>
+            ) : (
+              newSessions.map((session) => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  onStart={handleStartNewSession}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          {/* Old Yoga Sessions */}
+          <TabsContent value="old" className="space-y-4">
+            {sessions.length === 0 ? (
           <Card className="p-8 text-center bg-card/80 backdrop-blur-sm border-accent/20">
             <p className="text-muted-foreground mb-4">No sessions scheduled yet</p>
             <p className="text-sm text-muted-foreground">Click the + button to create your first yoga session</p>
@@ -252,6 +349,21 @@ const Sessions = () => {
             </Card>
           ))
         )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Create New Session Dialog */}
+        <Dialog open={isNewSessionDialogOpen} onOpenChange={setIsNewSessionDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Create New Session</DialogTitle>
+            </DialogHeader>
+            <CreateSessionForm
+              onSuccess={handleNewSessionSuccess}
+              onCancel={() => setIsNewSessionDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

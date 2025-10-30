@@ -11,6 +11,7 @@ import Affirmation from "./pages/Affirmation";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Sessions from "./pages/Sessions";
+import SessionTracker from "./pages/SessionTracker";
 import Reflection from "./pages/Reflection";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/affirmation" element={<Affirmation />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/sessions" element={<Sessions />} />
+            <Route path="/session-tracker" element={<SessionTracker />} />
             <Route path="/reflection" element={<Reflection />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
