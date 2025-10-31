@@ -65,9 +65,6 @@ const Calendar = () => {
   const [weeklyReflections, setWeeklyReflections] = useState<DailyReflection[]>([]);
   const [selectedMoonPhase, setSelectedMoonPhase] = useState<MoonPhase | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [isCreateSessionOpen, setIsCreateSessionOpen] = useState(false);
-  const [selectedSessionDate, setSelectedSessionDate] = useState<string | null>(null);
-  const [selectedDaySessions, setSelectedDaySessions] = useState<Session[]>([]);
 
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
@@ -75,11 +72,13 @@ const Calendar = () => {
     0
   ).getDate();
 
-  const firstDayOfMonth = new Date(
+  // Adjust for Monday start (Indian calendar convention)
+  const firstDayOfMonthRaw = new Date(
     currentMonth.getFullYear(),
     currentMonth.getMonth(),
     1
   ).getDay();
+  const firstDayOfMonth = firstDayOfMonthRaw === 0 ? 6 : firstDayOfMonthRaw - 1;
 
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
@@ -174,8 +173,11 @@ const Calendar = () => {
   };
 
   const fetchWeeklyReport = async (date: Date) => {
+    // Start week on Monday (Indian convention)
     const startOfWeek = new Date(date);
-    startOfWeek.setDate(date.getDate() - date.getDay());
+    const dayOfWeek = date.getDay();
+    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday as first day
+    startOfWeek.setDate(date.getDate() - diff);
     
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -220,29 +222,9 @@ const Calendar = () => {
     }
   };
 
-  const handleSessionSuccess = () => {
-    fetchSessions();
-    setIsCreateSessionOpen(false);
-    toast.success('Session created successfully!');
-  };
-
   const handleDayClick = (dateStr: string, scheduledSessions: Session[]) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (scheduledSessions.length > 0) {
-      // Show scheduled sessions for this day
-      setSelectedDaySessions(scheduledSessions);
-      setSelectedSessionDate(dateStr);
-    } else if (date >= today) {
-      // Future date, allow creating session
-      setSelectedSessionDate(dateStr);
-      setIsCreateSessionOpen(true);
-    } else {
-      // Past date with no sessions, show reflection drawer
-      setSelectedDate(dateStr);
-    }
+    // Only open journal drawer for any date clicked
+    setSelectedDate(dateStr);
   };
 
   const moonDays = moonPhases.reduce((acc, phase) => {
@@ -263,35 +245,56 @@ const Calendar = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="p-6 border-b border-border/50 backdrop-blur-sm bg-card/50">
-        <div className="flex items-center justify-between mb-4">
+      <header className="border-b border-border/50 backdrop-blur-sm bg-card/50">
+        {/* Top Navigation Bar */}
+        <div className="p-6 pb-4 flex items-center justify-between">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/home')}
-            className="rounded-full"
+            className="rounded-full hover:bg-accent/20"
           >
             <ChevronLeft className="w-6 h-6" />
           </Button>
-          <h1 className="text-2xl font-bold text-glow">Yoga Calendar</h1>
+          <h1 className="text-2xl font-bold text-glow">WanderWithin</h1>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => fetchWeeklyReport(new Date())}
-            className="rounded-full"
+            className="rounded-full hover:bg-accent/20"
           >
             <BookOpen className="w-6 h-6" />
           </Button>
         </div>
         
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => changeMonth(-1)}>
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h2 className="text-lg font-semibold">{monthName}</h2>
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => changeMonth(1)}>
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+        {/* Month Selector - Separated with Card Background */}
+        <div className="px-6 pb-6">
+          <Card className="p-3 bg-gradient-to-r from-accent/10 via-indigo/10 to-accent/10 border-accent/20">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full hover:bg-accent/20 h-9 w-9" 
+                onClick={() => changeMonth(-1)}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-accent">{monthName}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {reflections.length} reflections • {sessionLogs.length} sessions
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full hover:bg-accent/20 h-9 w-9" 
+                onClick={() => changeMonth(1)}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+          </Card>
         </div>
       </header>
 
@@ -347,7 +350,7 @@ const Calendar = () => {
         </div>
 
         <div className="grid grid-cols-7 gap-2 mb-6">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
             <div key={day} className="text-center text-xs text-muted-foreground font-medium">
               {day}
             </div>
@@ -367,7 +370,12 @@ const Calendar = () => {
             });
             const scheduledSessions = daySchedule[dateStr] || [];
             const reflection = reflections.find(r => r.reflection_date === dateStr);
-            const isToday = new Date().toISOString().split('T')[0] === dateStr;
+            
+            // Fix timezone issue: compare dates in local timezone
+            const today = new Date();
+            const isToday = date.getFullYear() === today.getFullYear() && 
+                           date.getMonth() === today.getMonth() && 
+                           date.getDate() === today.getDate();
             const isFuture = date > new Date();
 
             return (
@@ -495,99 +503,10 @@ const Calendar = () => {
 
         {/* Daily Reflection Drawer */}
         <DailyReflectionDrawer
-          isOpen={!!selectedDate && !selectedSessionDate}
+          isOpen={!!selectedDate}
           date={selectedDate || ''}
           onClose={() => setSelectedDate(null)}
         />
-
-        {/* Create Session Dialog */}
-        <Dialog open={isCreateSessionOpen} onOpenChange={setIsCreateSessionOpen}>
-          <DialogContent className="bg-card border-accent/40 max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Plus className="w-5 h-5 text-accent" />
-                Create New Practice Session
-              </DialogTitle>
-              <DialogDescription>
-                Schedule a regular practice session for {selectedSessionDate && new Date(selectedSessionDate).toLocaleDateString('default', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </DialogDescription>
-            </DialogHeader>
-            <CreateSessionForm onSuccess={handleSessionSuccess} />
-          </DialogContent>
-        </Dialog>
-
-        {/* View Day Sessions Dialog */}
-        <Dialog open={selectedDaySessions.length > 0 && !!selectedSessionDate} onOpenChange={() => {
-          setSelectedDaySessions([]);
-          setSelectedSessionDate(null);
-        }}>
-          <DialogContent className="bg-card border-accent/40 max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Scheduled Sessions</DialogTitle>
-              <DialogDescription>
-                {selectedSessionDate && new Date(selectedSessionDate).toLocaleDateString('default', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              {selectedDaySessions.map((session) => {
-                const Icon = getSessionTypeIcon(session.session_type);
-                return (
-                  <Card key={session.id} className="p-4 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 transition-all">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className={`p-2 rounded-full bg-secondary/20`}>
-                          <Icon className={`w-5 h-5 ${getSessionTypeColor(session.session_type)}`} />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium">{session.session_name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${getSessionTypeColor(session.session_type)} bg-secondary/20`}>
-                              {session.session_type}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {session.scheduled_time.slice(0, 5)}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              • {session.duration_minutes} min
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          navigate('/session-tracker', { state: { session } });
-                        }}
-                      >
-                        Start
-                      </Button>
-                    </div>
-                  </Card>
-                );
-              })}
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setSelectedDaySessions([]);
-                  setIsCreateSessionOpen(true);
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Another Session
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Weekly Report Dialog */}
         <Dialog open={showWeeklyReport} onOpenChange={setShowWeeklyReport}>
@@ -686,17 +605,7 @@ const Calendar = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Floating Action Button */}
-      <Button
-        size="lg"
-        className="fixed bottom-24 right-6 rounded-full w-14 h-14 shadow-glow hover:shadow-float transition-all duration-300 hover:scale-110 z-40"
-        onClick={() => {
-          setSelectedSessionDate(new Date().toISOString().split('T')[0]);
-          setIsCreateSessionOpen(true);
-        }}
-      >
-        <Plus className="w-6 h-6" />
-      </Button>
+
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4 z-50">
@@ -707,7 +616,7 @@ const Calendar = () => {
             onClick={() => navigate('/home')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <div className="w-6 h-6" />
+            <Moon className="w-6 h-6" />
             <span className="text-xs">Home</span>
           </Button>
           <Button
@@ -715,7 +624,14 @@ const Calendar = () => {
             size="icon"
             className="flex flex-col gap-1 h-auto py-2 text-accent"
           >
-            <div className="w-6 h-6" />
+            <div className="w-6 h-6 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
             <span className="text-xs">Calendar</span>
           </Button>
           <Button
@@ -724,7 +640,7 @@ const Calendar = () => {
             onClick={() => navigate('/affirmation')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <div className="w-6 h-6" />
+            <Zap className="w-6 h-6" />
             <span className="text-xs">Affirmations</span>
           </Button>
           <Button
@@ -733,7 +649,12 @@ const Calendar = () => {
             onClick={() => navigate('/profile')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <div className="w-6 h-6" />
+            <div className="w-6 h-6 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
             <span className="text-xs">Profile</span>
           </Button>
         </div>

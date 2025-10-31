@@ -65,11 +65,11 @@ const Onboarding = () => {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-glow leading-tight">
-            Begin Your Path to Inner Peace
+            WanderWithin
           </h1>
           
           <p className="text-base md:text-lg text-muted-foreground/90 leading-relaxed max-w-sm mx-auto">
-            Find harmony in daily meditation, mindful practices, and ancient wisdom
+            Your journey to inner peace begins here. Track your practice, reflect daily, and discover the wisdom within.
           </p>
         </div>
 

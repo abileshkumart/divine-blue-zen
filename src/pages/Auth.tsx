@@ -80,10 +80,10 @@ const Auth = () => {
             <Sparkles className="w-8 h-8 text-accent" />
           </div>
           <h1 className="text-3xl font-bold mb-2 text-glow">
-            {isLogin ? 'Welcome Back' : 'Begin Your Journey'}
+            {isLogin ? 'Welcome Back' : 'Welcome to WanderWithin'}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {isLogin ? 'Continue your spiritual practice' : 'Create your account to start'}
+            {isLogin ? 'Continue your inner journey' : 'Begin your journey within'}
           </p>
         </div>
 

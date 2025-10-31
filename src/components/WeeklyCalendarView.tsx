@@ -52,8 +52,11 @@ const WeeklyCalendarView = () => {
   function getWeekStart(date: Date): Date {
     const d = new Date(date);
     const day = d.getDay();
-    const diff = d.getDate() - day;
-    return new Date(d.setDate(diff));
+    // Start week on Monday (Indian convention): if Sunday (0), go back 6 days, else go back (day-1) days
+    const diff = day === 0 ? 6 : day - 1;
+    const weekStart = new Date(d);
+    weekStart.setDate(d.getDate() - diff);
+    return weekStart;
   }
 
   useEffect(() => {
@@ -120,7 +123,7 @@ const WeeklyCalendarView = () => {
       days.push({
         date,
         dateString,
-        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayName: date.toLocaleDateString('en-IN', { weekday: 'short' }),
         dayNumber: date.getDate(),
         isToday: date.getTime() === today.getTime(),
         hasJournal: !!dayReflection,
@@ -267,8 +270,8 @@ const WeeklyCalendarView = () => {
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm font-medium min-w-[140px] text-center">
-            {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {
-              new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            {weekStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} - {
+              new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
             }
           </span>
           <Button
@@ -369,7 +372,7 @@ const WeeklyCalendarView = () => {
                   <ChevronDown className="w-6 h-6" />
                 </Button>
                 <DrawerTitle className="flex items-center justify-center gap-2">
-                  {selectedDay.dayName}, {selectedDay.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  {selectedDay.dayName}, {selectedDay.date.toLocaleDateString('en-IN', { month: 'long', day: 'numeric' })}
                   {selectedDay.isToday && (
                     <Badge variant="outline" className="text-accent border-accent">Today</Badge>
                   )}

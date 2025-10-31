@@ -94,7 +94,7 @@ const Profile = () => {
             {(profile?.display_name || user?.email || 'YJ').substring(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 pb-2">
-            <h1 className="text-2xl font-bold mb-1">{profile?.display_name || user?.email?.split('@')[0] || 'Yoga Journey'}</h1>
+            <h1 className="text-2xl font-bold mb-1">{profile?.display_name || user?.email?.split('@')[0] || 'Wanderer'}</h1>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
         </div>
@@ -229,7 +229,7 @@ const Profile = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4 z-50">
         <div className="flex items-center justify-around max-w-md mx-auto">
           <Button
             variant="ghost"
@@ -237,7 +237,7 @@ const Profile = () => {
             onClick={() => navigate('/home')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <div className="w-6 h-6" />
+            <Flame className="w-6 h-6" />
             <span className="text-xs">Home</span>
           </Button>
           <Button
@@ -246,7 +246,14 @@ const Profile = () => {
             onClick={() => navigate('/calendar')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <div className="w-6 h-6" />
+            <div className="w-6 h-6 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
             <span className="text-xs">Calendar</span>
           </Button>
           <Button
@@ -255,7 +262,7 @@ const Profile = () => {
             onClick={() => navigate('/affirmation')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <div className="w-6 h-6" />
+            <Award className="w-6 h-6" />
             <span className="text-xs">Affirmations</span>
           </Button>
           <Button
@@ -263,7 +270,12 @@ const Profile = () => {
             size="icon"
             className="flex flex-col gap-1 h-auto py-2 text-accent"
           >
-            <div className="w-6 h-6" />
+            <div className="w-6 h-6 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
             <span className="text-xs">Profile</span>
           </Button>
         </div>
