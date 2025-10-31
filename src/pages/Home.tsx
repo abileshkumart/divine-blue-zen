@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import mandalaPattern from "@/assets/mandala-pattern.jpg";
 import WeeklyCalendarView from "@/components/WeeklyCalendarView";
+import SphereImageGrid, { ImageData } from "@/components/ui/image-sphere";
 
 interface Profile {
   id: string;
@@ -31,6 +32,94 @@ interface UpcomingMoonPhases {
   pournami: MoonPhase[];
   amavasai: MoonPhase[];
 }
+
+// Sample images for the sphere - spiritual and meditation themed
+const JOURNEY_IMAGES: ImageData[] = [
+  {
+    id: "img-1",
+    src: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400&h=400&fit=crop",
+    alt: "Meditation in Nature",
+    title: "Morning Meditation",
+    description: "Finding peace in nature's embrace"
+  },
+  {
+    id: "img-2",
+    src: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=400&fit=crop",
+    alt: "Yoga Practice",
+    title: "Inner Balance",
+    description: "Embracing the calm within through yoga"
+  },
+  {
+    id: "img-3",
+    src: "https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=400&fit=crop",
+    alt: "Peaceful Meditation",
+    title: "Mindful Moments",
+    description: "Creating space for stillness"
+  },
+  {
+    id: "img-4",
+    src: "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=400&fit=crop",
+    alt: "Breathing Exercise",
+    title: "Breathwork Practice",
+    description: "Every breath a new beginning"
+  },
+  {
+    id: "img-5",
+    src: "https://images.unsplash.com/photo-1588286840104-8957b019727f?w=400&h=400&fit=crop",
+    alt: "Zen Garden",
+    title: "Tranquil Space",
+    description: "Journey to inner stillness"
+  },
+  {
+    id: "img-6",
+    src: "https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?w=400&h=400&fit=crop",
+    alt: "Spiritual Symbols",
+    title: "Sacred Space",
+    description: "Finding your sanctuary within"
+  },
+  {
+    id: "img-7",
+    src: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=400&h=400&fit=crop",
+    alt: "Mindful Walking",
+    title: "Mindful Awareness",
+    description: "Present in every moment"
+  },
+  {
+    id: "img-8",
+    src: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop",
+    alt: "Yoga Flow",
+    title: "Flow State",
+    description: "Moving with intention and grace"
+  },
+  {
+    id: "img-9",
+    src: "https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=400&fit=crop",
+    alt: "Gentle Yoga",
+    title: "Gentle Practice",
+    description: "Honoring your body's wisdom"
+  },
+  {
+    id: "img-10",
+    src: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&h=400&fit=crop",
+    alt: "Lotus Position",
+    title: "Daily Ritual",
+    description: "Building a mindful practice"
+  },
+  {
+    id: "img-11",
+    src: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=400&fit=crop&sat=-50",
+    alt: "Evening Meditation",
+    title: "Evening Reflection",
+    description: "Closing the day with gratitude"
+  },
+  {
+    id: "img-12",
+    src: "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=400&fit=crop",
+    alt: "Centered Being",
+    title: "Inner Peace",
+    description: "Finding your center through practice"
+  }
+];
 
 const Home = () => {
   const navigate = useNavigate();
@@ -359,6 +448,47 @@ const Home = () => {
             </div>
           </Card>
         </div>
+
+        {/* Journey Sphere - Interactive 3D Memory Gallery */}
+        <Card 
+          className="p-6 bg-gradient-to-br from-card/80 to-secondary/30 backdrop-blur-sm border-accent/30 shadow-glow animate-fade-in-up overflow-hidden"
+          style={{ animationDelay: '0.7s' }}
+        >
+          <div className="relative">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent animate-glow-pulse" />
+                  Your Journey
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Explore moments of mindfulness
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-center items-center py-4">
+              <SphereImageGrid
+                images={JOURNEY_IMAGES}
+                containerSize={Math.min(400, window.innerWidth - 80)}
+                sphereRadius={180}
+                dragSensitivity={0.8}
+                momentumDecay={0.96}
+                maxRotationSpeed={6}
+                baseImageScale={0.15}
+                hoverScale={1.3}
+                perspective={1000}
+                autoRotate={true}
+                autoRotateSpeed={0.2}
+                className="mx-auto"
+              />
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground mt-4">
+              Drag to explore • Tap any image to view details
+            </p>
+          </div>
+        </Card>
       </main>
 
       {/* Bottom Navigation */}

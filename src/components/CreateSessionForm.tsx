@@ -15,7 +15,7 @@ import { Activity, Brain, Dumbbell, Wind } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import type { SessionType } from "@/types/session";
+import type { Session, SessionType } from "@/types/session";
 
 const sessionTypes = [
   { value: 'yoga', label: 'Yoga', icon: Activity, color: 'text-purple-500' },
@@ -27,18 +27,19 @@ const sessionTypes = [
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 interface CreateSessionFormProps {
+  session?: Session | null;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export const CreateSessionForm = ({ onSuccess, onCancel }: CreateSessionFormProps) => {
+export const CreateSessionForm = ({ session, onSuccess, onCancel }: CreateSessionFormProps) => {
   const { user } = useAuth();
-  const [sessionName, setSessionName] = useState('');
-  const [sessionType, setSessionType] = useState<SessionType>('meditation');
-  const [scheduledTime, setScheduledTime] = useState('07:00');
-  const [duration, setDuration] = useState(15);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [sessionName, setSessionName] = useState(session?.session_name || '');
+  const [sessionType, setSessionType] = useState<SessionType>(session?.session_type || 'meditation');
+  const [scheduledTime, setScheduledTime] = useState(session?.scheduled_time || '07:00');
+  const [duration, setDuration] = useState(session?.duration_minutes || 15);
+  const [selectedDays, setSelectedDays] = useState<string[]>(session?.days_of_week || []);
+  const [reminderEnabled, setReminderEnabled] = useState(session?.reminder_enabled !== undefined ? session.reminder_enabled : true);
   const [saving, setSaving] = useState(false);
 
   const handleDayToggle = (day: string) => {
@@ -69,30 +70,58 @@ export const CreateSessionForm = ({ onSuccess, onCancel }: CreateSessionFormProp
 
     setSaving(true);
 
-    const { error } = await supabase.from('sessions' as any).insert({
-      user_id: user.id,
-      session_name: sessionName,
-      session_type: sessionType,
-      scheduled_time: scheduledTime,
-      duration_minutes: duration,
-      days_of_week: selectedDays,
-      reminder_enabled: reminderEnabled,
-    });
+    if (session) {
+      // Update existing session
+      const { error } = await supabase
+        .from('sessions' as any)
+        .update({
+          session_name: sessionName,
+          session_type: sessionType,
+          scheduled_time: scheduledTime,
+          duration_minutes: duration,
+          days_of_week: selectedDays,
+          reminder_enabled: reminderEnabled,
+        })
+        .eq('id', session.id);
 
-    setSaving(false);
+      setSaving(false);
 
-    if (error) {
-      toast.error('Failed to create session');
-      console.error(error);
-      return;
+      if (error) {
+        toast.error('Failed to update session');
+        console.error(error);
+        return;
+      }
+
+      toast.success('Session updated successfully! 🎉');
+    } else {
+      // Create new session
+      const { error } = await supabase.from('sessions' as any).insert({
+        user_id: user.id,
+        session_name: sessionName,
+        session_type: sessionType,
+        scheduled_time: scheduledTime,
+        duration_minutes: duration,
+        days_of_week: selectedDays,
+        reminder_enabled: reminderEnabled,
+      });
+
+      setSaving(false);
+
+      if (error) {
+        toast.error('Failed to create session');
+        console.error(error);
+        return;
+      }
+
+      toast.success('Session created successfully! 🎉');
     }
-
-    toast.success('Session created successfully! 🎉');
     
-    // Reset form
-    setSessionName('');
-    setSelectedDays([]);
-    setDuration(15);
+    // Reset form only if creating new
+    if (!session) {
+      setSessionName('');
+      setSelectedDays([]);
+      setDuration(15);
+    }
     
     onSuccess?.();
   };
@@ -211,9 +240,9 @@ export const CreateSessionForm = ({ onSuccess, onCancel }: CreateSessionFormProp
           <Button
             type="submit"
             disabled={saving}
-            className="flex-1 bg-accent hover:bg-accent/90"
+            className="flex-1 bg-gradient-to-r from-accent to-indigo hover:from-accent/90 hover:to-indigo/90"
           >
-            {saving ? 'Creating...' : 'Create Session'}
+            {saving ? (session ? 'Updating...' : 'Creating...') : (session ? 'Update Session' : 'Create Session')}
           </Button>
         </div>
       </form>

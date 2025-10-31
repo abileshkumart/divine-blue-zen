@@ -37,7 +37,7 @@ const Onboarding = () => {
       }}
     >
       {/* Overlay with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/40 to-background/60 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/40 to-background/60" />
       
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -60,11 +60,11 @@ const Onboarding = () => {
       <div className="relative z-10 text-center space-y-8 max-w-md w-full px-6 animate-fade-in-up">
         {/* Logo and Title */}
         <div className="space-y-6">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-accent/20 backdrop-blur-sm animate-float">
+          {/* <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-accent/20 backdrop-blur-sm animate-float">
             <Sparkles className="w-12 h-12 text-accent" />
-          </div>
+          </div> */}
           
-          <h1 className="text-4xl md:text-5xl font-bold text-glow leading-tight">
+          <h1 className="text-4xl md:text-5xl font-bold text-glow leading-tight mt-5">
             WanderWithin
           </h1>
           
