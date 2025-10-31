@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import mandalaPattern from "@/assets/mandala-pattern.jpg";
 import { BreathingExercise } from '@/components/breathing-exercise';
+import PullToRefresh from "@/components/PullToRefresh";
 
 const affirmations = [
 	"I am at peace with myself and the universe flows through me",

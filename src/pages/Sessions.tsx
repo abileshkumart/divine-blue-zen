@@ -27,6 +27,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { CreateSessionForm } from "@/components/CreateSessionForm";
 import type { Session } from "@/types/session";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import PullToRefresh from "@/components/PullToRefresh";
 
 interface DaySession {
   date: Date;
@@ -47,6 +49,7 @@ interface SessionLog {
 const Sessions = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -60,11 +63,20 @@ const Sessions = () => {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(getWeekStart(new Date()));
   const [weekDays, setWeekDays] = useState<DaySession[]>([]);
   const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set([new Date().toISOString().split('T')[0]]));
+
+  const loadAllData = async () => {
+    setIsLoadingData(true);
+    await Promise.all([
+      fetchSessions(),
+      fetchSessionLogs()
+    ]);
+    setIsLoadingData(false);
+  };
 
   useEffect(() => {
     if (user) {
-      fetchSessions();
-      fetchSessionLogs();
+      loadAllData();
     }
   }, [user, currentWeekStart]);
 
@@ -200,6 +212,18 @@ const Sessions = () => {
     setCurrentWeekStart(getWeekStart(new Date()));
   };
 
+  const toggleDayExpansion = (dateStr: string) => {
+    setExpandedDays(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(dateStr)) {
+        newSet.delete(dateStr);
+      } else {
+        newSet.add(dateStr);
+      }
+      return newSet;
+    });
+  };
+
   const getSessionIcon = (type: string) => {
     switch (type) {
       case 'yoga': return Activity;
@@ -253,8 +277,18 @@ const Sessions = () => {
 
   const weeklyStats = getWeeklyStats();
 
+  if (loading || isLoadingData) {
+    return (
+      <LoadingSpinner
+        message="Loading your sessions..."
+        subMessage="Preparing your weekly schedule"
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <PullToRefresh onRefresh={loadAllData}>
+      <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="relative border-b border-border/50 backdrop-blur-sm bg-gradient-to-r from-card/80 via-accent/5 to-indigo/5 overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -367,9 +401,14 @@ const Sessions = () => {
                       : 'bg-gradient-to-br from-card to-secondary/30 border border-border/20 shadow-sm'
                   }`}
                   onClick={() => {
-                    // Optional: scroll to that day's card
-                    const dayCard = document.getElementById(`day-${day.dateStr}`);
-                    if (dayCard) dayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Expand the day and scroll to its card
+                    if (!expandedDays.has(day.dateStr)) {
+                      toggleDayExpansion(day.dateStr);
+                    }
+                    setTimeout(() => {
+                      const dayCard = document.getElementById(`day-${day.dateStr}`);
+                      if (dayCard) dayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
                   }}
                 >
                   {/* Day Name */}
@@ -461,18 +500,24 @@ const Sessions = () => {
           </Card>
         ) : (
           <>
-            {weekDays.map((day) => (
+            {weekDays.map((day) => {
+              const isExpanded = expandedDays.has(day.dateStr);
+              const allCompleted = day.sessions.length > 0 && day.sessions.length === day.completedSessionIds.length;
+              const someCompleted = day.completedSessionIds.length > 0 && day.completedSessionIds.length < day.sessions.length;
+              
+              return (
               <Card 
                 key={day.dateStr}
                 id={`day-${day.dateStr}`}
-                className={`p-4 bg-card/80 backdrop-blur-sm transition-all scroll-mt-20 ${
+                className={`bg-card/80 backdrop-blur-sm transition-all scroll-mt-20 cursor-pointer ${
                   isToday(day.date) 
                     ? 'border-accent/50 shadow-glow' 
                     : 'border-border/30'
                 }`}
+                onClick={() => day.sessions.length > 0 && toggleDayExpansion(day.dateStr)}
               >
-                {/* Day Header - More Detailed */}
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-border/30">
+                {/* Day Header - Clickable */}
+                <div className={`flex items-center justify-between ${isExpanded ? 'p-4 pb-3 border-b border-border/30' : 'p-4'}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-lg flex flex-col items-center justify-center ${
                       isToday(day.date)
@@ -499,23 +544,38 @@ const Sessions = () => {
                          day.dayName === 'Fri' ? 'Friday' :
                          day.dayName === 'Sat' ? 'Saturday' : 'Sunday'}
                       </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {day.sessions.length} {day.sessions.length === 1 ? 'session' : 'sessions'} scheduled
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground">
+                          {day.sessions.length} {day.sessions.length === 1 ? 'session' : 'sessions'}
+                        </p>
+                        {allCompleted && !isFutureDate(day.date) && (
+                          <Badge className="text-[10px] px-1.5 py-0 h-4 bg-green-500/20 text-green-500 border-green-500/30">
+                            ✓ Complete
+                          </Badge>
+                        )}
+                        {someCompleted && (
+                          <Badge className="text-[10px] px-1.5 py-0 h-4 bg-orange-500/20 text-orange-500 border-orange-500/30">
+                            {day.completedSessionIds.length}/{day.sessions.length}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {isToday(day.date) && (
-                    <Badge className="bg-accent/20 text-accent border-accent/30 animate-pulse">
-                      Today
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {isToday(day.date) && (
+                      <Badge className="bg-accent/20 text-accent border-accent/30 animate-pulse">
+                        Today
+                      </Badge>
+                    )}
+                    {day.sessions.length > 0 && (
+                      <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                    )}
+                  </div>
                 </div>
 
-                {/* Day Sessions */}
-                {day.sessions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No sessions scheduled</p>
-                ) : (
-                  <div className="space-y-2">
+                {/* Day Sessions - Collapsible */}
+                {isExpanded && (
+                  <div className="p-4 pt-3 space-y-2">
                     {day.sessions.map((session) => {
                       const Icon = getSessionIcon(session.session_type);
                       const isCompleted = day.completedSessionIds.includes(session.id);
@@ -607,8 +667,16 @@ const Sessions = () => {
                     })}
                   </div>
                 )}
+
+                {/* No sessions message */}
+                {isExpanded && day.sessions.length === 0 && (
+                  <div className="px-4 pb-4 pt-2">
+                    <p className="text-sm text-muted-foreground text-center py-4">No sessions scheduled</p>
+                  </div>
+                )}
               </Card>
-            ))}
+            );
+            })}
           </>
         )}
       </main>
@@ -676,7 +744,8 @@ const Sessions = () => {
           </Button>
         </div>
       </nav>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

@@ -310,46 +310,45 @@ const WeeklyCalendarView = () => {
                 </div>
               </div>
 
-              {/* Indicators */}
-              <div className="space-y-1">
-                {/* Journal Indicator */}
-                {day.hasJournal && (
-                  <div className="flex items-center justify-center gap-1">
-                    <BookOpen className="w-3 h-3 text-indigo" />
-                    <span className="text-xs">{getMoodEmoji(day.mood)}</span>
-                  </div>
-                )}
-
-                {/* Session Progress */}
+              {/* Indicators - Minimal Compact View */}
+              <div className="space-y-1.5">
+                {/* Session Progress Dots */}
                 {day.scheduledSessions.length > 0 && (
-                  <div className="space-y-0.5">
-                    {day.scheduledSessions.slice(0, 2).map((session) => {
-                      const isCompleted = day.completedSessionIds.includes(session.id);
-                      return (
-                        <div 
-                          key={session.id}
-                          className="flex items-center justify-center gap-1"
-                        >
-                          <span className="text-xs">{getSessionIcon(session.session_type)}</span>
-                          {isCompleted && (
-                            <CheckCircle2 className="w-3 h-3 text-green-500" />
-                          )}
-                        </div>
-                      );
-                    })}
-                    {day.scheduledSessions.length > 2 && (
-                      <div className="text-[10px] text-center text-muted-foreground">
-                        +{day.scheduledSessions.length - 2} more
+                  <div className="flex items-center justify-center gap-1">
+                    {allCompleted ? (
+                      <div className="flex items-center justify-center w-full">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: Math.min(day.scheduledSessions.length, 4) }).map((_, idx) => (
+                          <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              idx < day.completedSessionIds.length
+                                ? 'bg-green-500'
+                                : 'bg-muted-foreground/30'
+                            }`}
+                          />
+                        ))}
+                        {day.scheduledSessions.length > 4 && (
+                          <span className="text-[9px] text-muted-foreground ml-0.5">
+                            +{day.scheduledSessions.length - 4}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* All Complete Badge */}
-                {allCompleted && (
-                  <Badge variant="outline" className="w-full justify-center text-[10px] py-0 border-green-500/50 text-green-600">
-                    ✓ Done
-                  </Badge>
+                {/* Journal Indicator */}
+                {day.hasJournal && (
+                  <div className="flex items-center justify-center">
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo/10">
+                      <BookOpen className="w-2.5 h-2.5 text-indigo" />
+                      <span className="text-[10px]">{getMoodEmoji(day.mood)}</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </Card>

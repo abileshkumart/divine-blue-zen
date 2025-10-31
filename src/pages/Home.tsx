@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import mandalaPattern from "@/assets/mandala-pattern.jpg";
 import WeeklyCalendarView from "@/components/WeeklyCalendarView";
 import SphereImageGrid, { ImageData } from "@/components/ui/image-sphere";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import PullToRefresh from "@/components/PullToRefresh";
 
 interface Profile {
   id: string;
@@ -125,6 +127,7 @@ const Home = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [userName, setUserName] = useState<string>("");
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -134,17 +137,29 @@ const Home = () => {
 
   useEffect(() => {
     if (user) {
-      fetchUserData();
-      fetchSessions();
-      fetchTodayMoonPhase();
-      fetchUpcomingMoonPhases();
+      loadAllData();
     }
   }, [user]);
+  
   const [sessions, setSessions] = useState<YogaSession[]>([]);
   const [todayMoonPhase, setTodayMoonPhase] = useState<MoonPhase | null>(null);
   const [streakCount, setStreakCount] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
   const [upcomingPhases, setUpcomingPhases] = useState<UpcomingMoonPhases>({ pournami: [], amavasai: [] });
+
+  const loadAllData = async () => {
+    setIsLoadingData(true);
+    try {
+      await Promise.all([
+        fetchUserData(),
+        fetchSessions(),
+        fetchTodayMoonPhase(),
+        fetchUpcomingMoonPhases()
+      ]);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
   const fetchUserData = async () => {
     const { data: profile } = await supabase
@@ -244,10 +259,21 @@ const Home = () => {
 
   const moonData = getMoonDisplay();
 
+  // Loading State
+  if (loading || isLoadingData) {
+    return (
+      <LoadingSpinner
+        message={loading ? "Preparing your sanctuary..." : "Loading your journey..."}
+        subMessage={loading ? "Setting up your mindful space" : "Gathering your practice data"}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="p-6 flex items-center justify-between border-b border-border/50 backdrop-blur-sm bg-card/50">
+    <PullToRefresh onRefresh={loadAllData}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="p-6 flex items-center justify-between border-b border-border/50 backdrop-blur-sm bg-card/50">
         <div className="flex items-start gap-3">
           <div className="mt-1">
             {getTimeBasedIcon()}
@@ -532,7 +558,8 @@ const Home = () => {
           </Button>
         </div>
       </nav>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

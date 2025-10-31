@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { DailyReflectionDrawer } from "@/components/daily-reflection-drawer";
 import { Session, SessionType } from "@/types/session";
 import { CreateSessionForm } from "@/components/CreateSessionForm";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const moods = [
   { value: 'calm', label: 'Calm' },
@@ -48,6 +50,7 @@ interface DaySchedule {
 const Calendar = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -82,12 +85,20 @@ const Calendar = () => {
 
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
+  const loadAllData = async () => {
+    setIsLoadingData(true);
+    await Promise.all([
+      fetchMoonPhases(),
+      fetchSessionLogs(),
+      fetchSessions(),
+      fetchMonthReflections()
+    ]);
+    setIsLoadingData(false);
+  };
+
   useEffect(() => {
-    fetchMoonPhases();
     if (user) {
-      fetchSessionLogs();
-      fetchSessions();
-      fetchMonthReflections();
+      loadAllData();
     }
   }, [currentMonth, user]);
 
@@ -242,8 +253,18 @@ const Calendar = () => {
     navigate('/home');
   };
 
+  if (loading || isLoadingData) {
+    return (
+      <LoadingSpinner
+        message="Loading your calendar..."
+        subMessage="Gathering sessions and reflections"
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <PullToRefresh onRefresh={loadAllData}>
+      <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-card/50">
         {/* Top Navigation Bar */}
@@ -659,7 +680,8 @@ const Calendar = () => {
           </Button>
         </div>
       </nav>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

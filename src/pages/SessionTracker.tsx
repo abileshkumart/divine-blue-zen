@@ -23,6 +23,7 @@ const SessionTracker = () => {
   const location = useLocation();
   const { user } = useAuth();
   const session = location.state?.session as Session | undefined;
+  const logDate = location.state?.date as string | undefined;
 
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -109,6 +110,20 @@ const SessionTracker = () => {
     }
 
     try {
+      // Use the passed date or fallback to today (in local timezone)
+      let dateToLog: string;
+      if (logDate) {
+        // If date was passed from Sessions.tsx, extract just the date part
+        dateToLog = logDate.split('T')[0];
+      } else {
+        // Fallback: create date string in local timezone
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        dateToLog = `${year}-${month}-${day}`;
+      }
+
       const { error } = await supabase
         .from('session_logs' as any)
         .insert({
@@ -116,7 +131,7 @@ const SessionTracker = () => {
           session_id: session?.id,
           session_name: session?.session_name,
           session_type: session?.session_type,
-          log_date: new Date().toISOString().split('T')[0],
+          log_date: dateToLog,
           actual_duration_minutes: actualDuration || session?.duration_minutes,
           mood_before: moodBefore,
           mood_after: moodAfter,
