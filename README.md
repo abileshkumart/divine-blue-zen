@@ -1,18 +1,10 @@
-# Welcome to your Lovable project
+# Waunderwithin - Wellness & Mindfulness App
 
-## Project info
+## About
 
-**URL**: https://lovable.dev/projects/784f221d-c607-4135-934c-493820817ea0
+Waunderwithin is a wellness and mindfulness application that helps users manage their meditation, yoga, breathing, and stretching sessions.
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/784f221d-c607-4135-934c-493820817ea0) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+## Getting Started
 
 **Use your preferred IDE**
 
@@ -60,14 +52,25 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Features
 
-Simply open [Lovable](https://lovable.dev/projects/784f221d-c607-4135-934c-493820817ea0) and click on Share -> Publish.
+- Session Management (yoga, meditation, stretching, breathing exercises)
+- Weekly Calendar View
+- Daily Reflections
+- Breathing Exercises
+- User Authentication
+- Profile Management
+- Affirmations
 
-## Can I connect a custom domain to my Lovable project?
+## Deployment
 
-Yes, you can!
+This project can be deployed to any hosting platform that supports Node.js applications, such as:
+- Vercel
+- Netlify
+- Heroku
+- DigitalOcean
+- AWS
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Custom Domain Setup
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+You can connect a custom domain to your deployed application through your chosen hosting provider's domain management settings.
