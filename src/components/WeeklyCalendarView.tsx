@@ -479,7 +479,7 @@ const WeeklyCalendarView = () => {
                       No sessions scheduled. <Button 
                         variant="link" 
                         className="p-0 h-auto text-accent"
-                        onClick={() => navigate('/calendar')}
+                        onClick={() => navigate('/sessions')}
                       >
                         Add one?
                       </Button>
