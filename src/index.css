@@ -113,6 +113,13 @@ All colors MUST be HSL.
   }
 }
 
+/* Safe bottom padding for fixed navbars */
+.pb-safe { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0)); }
+
+.safe-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 12px); }
+
+.tick-btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; padding: 6px; }
+
 /* Custom animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }

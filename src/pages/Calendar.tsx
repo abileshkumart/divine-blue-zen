@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Moon, BookOpen, Pencil, Smile, Frown, Meh, Zap, Plus, Activity, Brain, Dumbbell, Wind } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, BookOpen, Pencil, Smile, Frown, Meh, Zap, Plus, Activity, Brain, Dumbbell, Wind, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -658,11 +658,11 @@ const Calendar = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/affirmation')}
+            onClick={() => navigate('/community')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <Zap className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
+            <Users className="w-6 h-6" />
+            <span className="text-xs">Community</span>
           </Button>
           <Button
             variant="ghost"

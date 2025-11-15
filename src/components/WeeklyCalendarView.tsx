@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, Dumbbell, CheckCircle2, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { BookOpen, Dumbbell, CheckCircle2, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Session, SessionLog } from "@/types/session";
@@ -259,28 +259,43 @@ const WeeklyCalendarView = () => {
     <div className="space-y-4">
       {/* Week Navigation */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">This Week</h2>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePreviousWeek}
-            className="h-8 w-8"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-sm font-medium min-w-[140px] text-center">
-            {weekStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} - {
-              new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
-            }
+        <div>
+          <h2 className="text-xl font-bold">This Week</h2>
+          <span className="text-sm text-muted-foreground">
+            {weekStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} - {new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
           </span>
+        </div>
+
+        {/* Keep UI minimal: single tick/check action to focus user interaction */}
+        <div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleNextWeek}
+            aria-label="Open today's details"
+            onClick={() => {
+              // Find today's day and open its drawer
+              const todayIndex = weekData.findIndex(d => d.isToday);
+              if (todayIndex !== -1) {
+                const today = weekData[todayIndex];
+                setSelectedDay(today);
+                setIsDayDrawerOpen(true);
+              } else {
+                // If today's not in the current week, navigate to current week then open
+                const nowStart = getWeekStart(new Date());
+                setWeekStart(nowStart);
+                // small timeout to allow state update
+                setTimeout(() => {
+                  const tdIdx = weekData.findIndex(d => d.isToday);
+                  if (tdIdx !== -1) {
+                    setSelectedDay(weekData[tdIdx]);
+                    setIsDayDrawerOpen(true);
+                  }
+                }, 150);
+              }
+            }}
             className="h-8 w-8"
           >
-            <ChevronRight className="w-4 h-4" />
+            <CheckCircle2 className="w-5 h-5 text-accent" />
           </Button>
         </div>
       </div>

@@ -21,7 +21,8 @@ import {
   BarChart3,
   PieChart,
   TrendingDown,
-  Zap
+  Zap,
+  Users
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -697,11 +698,11 @@ const Profile = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/affirmation')}
+            onClick={() => navigate('/community')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
+            <Users className="w-6 h-6" />
+            <span className="text-xs">Community</span>
           </Button>
           <Button
             variant="ghost"

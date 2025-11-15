@@ -19,7 +19,8 @@ import {
   Edit2,
   Trash2,
   MoreVertical,
-  Clock
+  Clock,
+  Users
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -727,11 +728,11 @@ const Sessions = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/affirmation')}
+            onClick={() => navigate('/community')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
+            <Users className="w-6 h-6" />
+            <span className="text-xs">Community</span>
           </Button>
           <Button
             variant="ghost"

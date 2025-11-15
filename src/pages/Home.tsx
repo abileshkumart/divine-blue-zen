@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sunrise, Sunset, Moon, Sparkles, Calendar as CalendarIcon, User, BookOpen, ListTodo } from "lucide-react";
+import { Sunrise, Sunset, Moon, Sparkles, Calendar as CalendarIcon, User, BookOpen, ListTodo, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -541,11 +541,11 @@ const Home = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/affirmation')}
+            onClick={() => navigate('/community')}
             className="flex flex-col gap-1 h-auto py-2"
           >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
+            <Users className="w-6 h-6" />
+            <span className="text-xs">Community</span>
           </Button>
           <Button
             variant="ghost"

@@ -13,6 +13,8 @@ import Auth from "./pages/Auth";
 import Sessions from "./pages/Sessions";
 import SessionTracker from "./pages/SessionTracker";
 import Reflection from "./pages/Reflection";
+import Community from "./pages/Community";
+import JoinGroup from "./pages/JoinGroup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/sessions" element={<Sessions />} />
             <Route path="/session-tracker" element={<SessionTracker />} />
             <Route path="/reflection" element={<Reflection />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/join-group/:inviteCode" element={<JoinGroup />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
