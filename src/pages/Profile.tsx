@@ -331,6 +331,7 @@ const Profile = () => {
   }
 
   return (
+    <>
     <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background pb-24">
       {/* Hero Section with Glassmorphism */}
@@ -799,10 +800,12 @@ const Profile = () => {
 
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav />
       </div>
     </PullToRefresh>
+    
+    {/* Bottom Navigation */}
+    <BottomNav />
+    </>
   );
 };
 
