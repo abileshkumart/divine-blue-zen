@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import mandalaPattern from "@/assets/mandala-pattern.jpg";
 import { BreathingExercise } from '@/components/breathing-exercise';
-import PullToRefresh from "@/components/PullToRefresh";
 import BottomNav from "@/components/BottomNav";
 
 const affirmations = [
@@ -65,7 +64,7 @@ const Affirmation = () => {
 			{/* Content */}
 			<div className="relative z-10 min-h-screen flex flex-col">
 				{/* Header */}
-				<header className="p-6 flex items-center justify-between">
+				<header className="p-6 pt-[max(1.5rem,env(safe-area-inset-top))] flex items-center justify-between">
 					<Button
 						variant="ghost"
 						size="icon"

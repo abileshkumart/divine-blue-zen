@@ -28,7 +28,6 @@ import { toast } from "sonner";
 import { CreateSessionForm } from "@/components/CreateSessionForm";
 import type { Session } from "@/types/session";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import PullToRefresh from "@/components/PullToRefresh";
 import BottomNav from "@/components/BottomNav";
 
 interface DaySession {
@@ -289,13 +288,12 @@ const Sessions = () => {
 
   return (
     <>
-    <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="relative border-b border-border/50 backdrop-blur-sm bg-gradient-to-r from-card/80 via-accent/5 to-indigo/5 overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
-        <div className="relative p-6">
+        <div className="relative p-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
@@ -706,7 +704,6 @@ const Sessions = () => {
       </Dialog>
 
       </div>
-    </PullToRefresh>
     
     {/* Bottom Navigation */}
     <BottomNav />

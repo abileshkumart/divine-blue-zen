@@ -105,7 +105,7 @@ const Meditate = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header with Moon Phase */}
-      <header className="p-6 border-b border-border/50 backdrop-blur-sm bg-card/50">
+      <header className="p-6 pt-[max(1.5rem,env(safe-area-inset-top))] border-b border-border/50 backdrop-blur-sm bg-card/50">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Meditate</h1>

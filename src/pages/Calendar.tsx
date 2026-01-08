@@ -12,7 +12,6 @@ import { DailyReflectionDrawer } from "@/components/daily-reflection-drawer";
 import { Session, SessionType } from "@/types/session";
 import { CreateSessionForm } from "@/components/CreateSessionForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import PullToRefresh from "@/components/PullToRefresh";
 import BottomNav from "@/components/BottomNav";
 
 const moods = [
@@ -265,12 +264,11 @@ const Calendar = () => {
 
   return (
     <>
-    <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-card/50">
         {/* Top Navigation Bar */}
-        <div className="p-6 pb-4 flex items-center justify-between">
+        <div className="p-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 flex items-center justify-between">
           <Button
             variant="ghost"
             size="icon"
@@ -630,7 +628,6 @@ const Calendar = () => {
 
 
       </div>
-    </PullToRefresh>
     
     {/* Bottom Navigation */}
     <BottomNav />
