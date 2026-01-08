@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import AppLayout from "./components/AppLayout";
 import InstallPWA from "./components/InstallPWA";
+import ScrollToTop from "./components/ScrollToTop";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
 import Meditate from "./pages/Meditate";
@@ -33,6 +34,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <ScrollToTop />
             <AppLayout>
               <Routes>
                 <Route path="/" element={<Onboarding />} />

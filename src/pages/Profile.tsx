@@ -32,7 +32,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { gutTypes, GutType } from "@/lib/gutHealth";
 import moonBg from "@/assets/moon-bg.jpg";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import PullToRefresh from "@/components/PullToRefresh";
 import BottomNav from "@/components/BottomNav";
 
 interface Profile {
@@ -332,11 +331,10 @@ const Profile = () => {
 
   return (
     <>
-    <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background pb-24">
       {/* Hero Section with Glassmorphism */}
       <div 
-        className="relative h-56 overflow-hidden"
+        className="relative h-56 overflow-hidden pt-[env(safe-area-inset-top)]"
         style={{
           backgroundImage: `url(${moonBg})`,
           backgroundSize: 'cover',
@@ -801,7 +799,6 @@ const Profile = () => {
       </div>
 
       </div>
-    </PullToRefresh>
     
     {/* Bottom Navigation */}
     <BottomNav />

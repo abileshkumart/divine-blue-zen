@@ -81,7 +81,7 @@ const Idea = () => {
       {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
-        <header className="p-6 flex items-center justify-between">
+        <header className="p-6 pt-[max(1.5rem,env(safe-area-inset-top))] flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold">Daily Ideas</h1>
             <p className="text-sm text-muted-foreground">Affirmations for mind & soul</p>

@@ -9,7 +9,6 @@ import mandalaPattern from "@/assets/mandala-pattern.jpg";
 import WeeklyCalendarView from "@/components/WeeklyCalendarView";
 import SphereImageGrid, { ImageData } from "@/components/ui/image-sphere";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import PullToRefresh from "@/components/PullToRefresh";
 import BottomNav from "@/components/BottomNav";
 
 interface Profile {
@@ -272,10 +271,9 @@ const Home = () => {
 
   return (
     <>
-    <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="p-6 flex items-center justify-between border-b border-border/50 backdrop-blur-sm bg-card/50">
+        <header className="p-6 pt-[max(1.5rem,env(safe-area-inset-top))] flex items-center justify-between border-b border-border/50 backdrop-blur-sm bg-card/50">
         <div className="flex items-start gap-3">
           <div className="mt-1">
             {getTimeBasedIcon()}
@@ -560,9 +558,8 @@ const Home = () => {
         </Card>
       </main>
       </div>
-    </PullToRefresh>
     
-    {/* Bottom Navigation - Outside PullToRefresh */}
+    {/* Bottom Navigation */}
     <BottomNav />
     </>
   );
