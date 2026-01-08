@@ -6,6 +6,7 @@ import { useState } from "react";
 import mandalaPattern from "@/assets/mandala-pattern.jpg";
 import { BreathingExercise } from '@/components/breathing-exercise';
 import PullToRefresh from "@/components/PullToRefresh";
+import BottomNav from "@/components/BottomNav";
 
 const affirmations = [
 	"I am at peace with myself and the universe flows through me",
@@ -162,57 +163,7 @@ const Affirmation = () => {
 			/>
 
 			{/* Bottom Navigation */}
-			<nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4 z-50">
-				<div className="flex items-center justify-around max-w-md mx-auto">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => navigate('/home')}
-						className="flex flex-col gap-1 h-auto py-2"
-					>
-						<Wind className="w-6 h-6" />
-						<span className="text-xs">Home</span>
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => navigate('/calendar')}
-						className="flex flex-col gap-1 h-auto py-2"
-					>
-						<div className="w-6 h-6 flex items-center justify-center">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-								<line x1="16" y1="2" x2="16" y2="6"></line>
-								<line x1="8" y1="2" x2="8" y2="6"></line>
-								<line x1="3" y1="10" x2="21" y2="10"></line>
-							</svg>
-						</div>
-						<span className="text-xs">Calendar</span>
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="flex flex-col gap-1 h-auto py-2 text-accent"
-					>
-						<Heart className="w-6 h-6" />
-						<span className="text-xs">Affirmations</span>
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => navigate('/profile')}
-						className="flex flex-col gap-1 h-auto py-2"
-					>
-						<div className="w-6 h-6 flex items-center justify-center">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-								<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-								<circle cx="12" cy="7" r="4"></circle>
-							</svg>
-						</div>
-						<span className="text-xs">Profile</span>
-					</Button>
-				</div>
-			</nav>
+			<BottomNav />
 		</div>
 	);
 };

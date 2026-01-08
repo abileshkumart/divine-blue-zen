@@ -29,6 +29,7 @@ import { CreateSessionForm } from "@/components/CreateSessionForm";
 import type { Session } from "@/types/session";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PullToRefresh from "@/components/PullToRefresh";
+import BottomNav from "@/components/BottomNav";
 
 interface DaySession {
   date: Date;
@@ -287,6 +288,7 @@ const Sessions = () => {
   }
 
   return (
+    <>
     <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -703,49 +705,12 @@ const Sessions = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4 z-50">
-        <div className="flex items-center justify-around max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/home')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <CalendarIcon className="w-6 h-6" />
-            <span className="text-xs">Home</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/calendar')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <CalendarIcon className="w-6 h-6" />
-            <span className="text-xs">Calendar</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/affirmation')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/profile')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <User className="w-6 h-6" />
-            <span className="text-xs">Profile</span>
-          </Button>
-        </div>
-      </nav>
       </div>
     </PullToRefresh>
+    
+    {/* Bottom Navigation */}
+    <BottomNav />
+    </>
   );
 };
 

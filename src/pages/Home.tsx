@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sunrise, Sunset, Moon, Sparkles, Calendar as CalendarIcon, User, BookOpen, ListTodo } from "lucide-react";
+import { Sunrise, Sunset, Moon, Sparkles, Calendar as CalendarIcon, User, BookOpen, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +10,7 @@ import WeeklyCalendarView from "@/components/WeeklyCalendarView";
 import SphereImageGrid, { ImageData } from "@/components/ui/image-sphere";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PullToRefresh from "@/components/PullToRefresh";
+import BottomNav from "@/components/BottomNav";
 
 interface Profile {
   id: string;
@@ -270,6 +271,7 @@ const Home = () => {
   }
 
   return (
+    <>
     <PullToRefresh onRefresh={loadAllData}>
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -298,7 +300,7 @@ const Home = () => {
       </header>
 
       {/* Main Content */}
-      <main className="p-6 space-y-6 pb-24">
+      <main className="p-6 space-y-6 pb-28">
         {/* Weekly Calendar View - NEW */}
         <Card 
           className="p-5 bg-card/80 backdrop-blur-sm border-accent/30 shadow-card animate-fade-in-up"
@@ -406,27 +408,54 @@ const Home = () => {
           </div>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card 
-            className="p-5 bg-gradient-to-br from-accent/20 to-transparent border-accent/40 hover:shadow-glow transition-all cursor-pointer animate-fade-in-up"
-            onClick={() => navigate('/sessions')}
-            style={{ animationDelay: '0.3s' }}
-          >
-            <ListTodo className="w-8 h-8 text-accent mb-3" />
-            <h3 className="font-semibold text-sm">Manage Sessions</h3>
-            <p className="text-xs text-muted-foreground">Create & edit</p>
-          </Card>
+        {/* Quick Actions - 4 Grid */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Quick Actions</h2>
+          <div className="grid grid-cols-4 gap-3">
+            <Card 
+              className="p-3 bg-card/60 border-border/50 hover:bg-card/80 transition-all cursor-pointer animate-fade-in-up flex flex-col items-center text-center"
+              onClick={() => navigate('/meditate')}
+              style={{ animationDelay: '0.3s' }}
+            >
+              <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center mb-2">
+                <Moon className="w-5 h-5 text-cyan-500" />
+              </div>
+              <span className="text-xs font-medium">Meditate</span>
+            </Card>
 
-          <Card 
-            className="p-5 bg-gradient-to-br from-indigo/20 to-transparent border-indigo/40 hover:shadow-glow transition-all cursor-pointer animate-fade-in-up"
-            onClick={() => navigate('/calendar')}
-            style={{ animationDelay: '0.35s' }}
-          >
-            <CalendarIcon className="w-8 h-8 text-indigo mb-3" />
-            <h3 className="font-semibold text-sm">Full Calendar</h3>
-            <p className="text-xs text-muted-foreground">Month view</p>
-          </Card>
+            <Card 
+              className="p-3 bg-card/60 border-border/50 hover:bg-card/80 transition-all cursor-pointer animate-fade-in-up flex flex-col items-center text-center"
+              onClick={() => navigate('/idea')}
+              style={{ animationDelay: '0.35s' }}
+            >
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center mb-2">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+              </div>
+              <span className="text-xs font-medium">Ideas</span>
+            </Card>
+
+            <Card 
+              className="p-3 bg-card/60 border-border/50 hover:bg-card/80 transition-all cursor-pointer animate-fade-in-up flex flex-col items-center text-center"
+              onClick={() => navigate('/gut')}
+              style={{ animationDelay: '0.4s' }}
+            >
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
+                <Heart className="w-5 h-5 text-green-500" />
+              </div>
+              <span className="text-xs font-medium">Gut</span>
+            </Card>
+
+            <Card 
+              className="p-3 bg-card/60 border-border/50 hover:bg-card/80 transition-all cursor-pointer animate-fade-in-up flex flex-col items-center text-center"
+              onClick={() => navigate('/calendar')}
+              style={{ animationDelay: '0.45s' }}
+            >
+              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center mb-2">
+                <CalendarIcon className="w-5 h-5 text-indigo-500" />
+              </div>
+              <span className="text-xs font-medium">Calendar</span>
+            </Card>
+          </div>
         </div>
 
         {/* Today's Sessions */}
@@ -459,18 +488,32 @@ const Home = () => {
           </div>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 pt-2">
-          <Card className="p-4 bg-card/60 backdrop-blur-sm border-accent/20 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+        {/* Stats Row - Improved */}
+        <div className="grid grid-cols-3 gap-3 pt-2">
+          <Card className="p-4 bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/30 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
             <div className="text-center">
-              <div className="text-3xl font-bold text-accent mb-1">{streakCount}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Day Streak</div>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-2xl">🔥</span>
+                <span className="text-2xl font-bold text-orange-500">{streakCount}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">Day Streak</div>
             </div>
           </Card>
-          <Card className="p-4 bg-card/60 backdrop-blur-sm border-indigo/20 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+          <Card className="p-4 bg-gradient-to-br from-accent/10 to-transparent border-accent/30 animate-fade-in-up" style={{ animationDelay: '0.55s' }}>
             <div className="text-center">
-              <div className="text-3xl font-bold text-indigo mb-1">{totalSessions}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Total Sessions</div>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-2xl">🧘</span>
+                <span className="text-2xl font-bold text-accent">{totalSessions}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">Sessions</div>
+            </div>
+          </Card>
+          <Card className="p-4 bg-gradient-to-br from-indigo-500/10 to-transparent border-indigo-500/30 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-2xl">{moonData.icon}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">Moon Phase</div>
             </div>
           </Card>
         </div>
@@ -516,50 +559,12 @@ const Home = () => {
           </div>
         </Card>
       </main>
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4">
-        <div className="flex items-center justify-around max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/home')}
-            className="flex flex-col gap-1 h-auto py-2 text-accent"
-          >
-            <Sunrise className="w-6 h-6" />
-            <span className="text-xs">Home</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/calendar')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <CalendarIcon className="w-6 h-6" />
-            <span className="text-xs">Calendar</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/affirmation')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/profile')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <User className="w-6 h-6" />
-            <span className="text-xs">Profile</span>
-          </Button>
-        </div>
-      </nav>
       </div>
     </PullToRefresh>
+    
+    {/* Bottom Navigation - Outside PullToRefresh */}
+    <BottomNav />
+    </>
   );
 };
 

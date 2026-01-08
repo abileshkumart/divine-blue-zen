@@ -8,7 +8,70 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Deep cosmic blue theme inspired by Shiva meditation */
+    /* Light Mode: Warm Orange/Cream Theme */
+    --background: 30 50% 98%;
+    --foreground: 20 20% 15%;
+
+    --card: 30 40% 96%;
+    --card-foreground: 20 20% 15%;
+
+    --popover: 30 30% 98%;
+    --popover-foreground: 20 20% 15%;
+
+    /* Primary: Warm Orange */
+    --primary: 25 90% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Light Peach */
+    --secondary: 30 40% 92%;
+    --secondary-foreground: 20 20% 25%;
+
+    --muted: 30 20% 90%;
+    --muted-foreground: 20 15% 45%;
+
+    /* Accent: Vibrant Orange #F97316 */
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Light indigo accent for contrast */
+    --indigo: 250 70% 60%;
+    --indigo-foreground: 0 0% 100%;
+
+    /* Glow for light mode */
+    --glow: 30 100% 50%;
+    --glow-foreground: 20 20% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 85%;
+    --input: 30 20% 85%;
+    --ring: 25 95% 53%;
+
+    --radius: 1rem;
+
+    /* Custom gradients - Light */
+    --gradient-cosmic: linear-gradient(135deg, hsl(30, 50%, 98%) 0%, hsl(30, 40%, 92%) 50%, hsl(25, 90%, 85%) 100%);
+    --gradient-glow: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(35, 100%, 60%) 100%);
+    --gradient-moonlight: radial-gradient(circle, hsl(30, 100%, 95%) 0%, transparent 70%);
+
+    /* Shadows - Light */
+    --shadow-glow: 0 0 30px hsl(25, 95%, 53% / 0.2);
+    --shadow-card: 0 4px 16px hsl(20, 20%, 15% / 0.08);
+    --shadow-float: 0 8px 32px hsl(25, 95%, 53% / 0.15);
+
+    --sidebar-background: 30 40% 96%;
+    --sidebar-foreground: 20 20% 15%;
+    --sidebar-primary: 25 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 40% 92%;
+    --sidebar-accent-foreground: 20 20% 25%;
+    --sidebar-border: 30 20% 85%;
+    --sidebar-ring: 25 95% 53%;
+  }
+
+  .dark {
+    /* Dark Mode: Deep cosmic blue theme inspired by Shiva meditation */
     --background: 220 85% 8%;
     --foreground: 210 100% 94%;
 
@@ -18,8 +81,8 @@ All colors MUST be HSL.
     --popover: 220 75% 10%;
     --popover-foreground: 210 100% 94%;
 
-    /* Primary: Deep cosmic blue #0A1A3C */
-    --primary: 220 62% 13%;
+    /* Primary: Deep cosmic blue */
+    --primary: 220 62% 20%;
     --primary-foreground: 210 100% 94%;
 
     /* Secondary: Slightly lighter cosmic blue */
@@ -37,60 +100,27 @@ All colors MUST be HSL.
     --indigo: 231 100% 66%;
     --indigo-foreground: 210 100% 94%;
 
-    /* White light glow #E8F1FF */
+    /* White light glow */
     --glow: 210 100% 96%;
     --glow-foreground: 220 62% 13%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 100% 94%;
 
     --border: 220 40% 25%;
     --input: 220 40% 25%;
     --ring: 192 75% 59%;
 
-    --radius: 1rem;
-
-    /* Custom gradients */
+    /* Custom gradients - Dark */
     --gradient-cosmic: linear-gradient(135deg, hsl(220, 62%, 13%) 0%, hsl(220, 55%, 18%) 50%, hsl(231, 100%, 66%) 100%);
     --gradient-glow: linear-gradient(135deg, hsl(192, 75%, 59%) 0%, hsl(231, 100%, 66%) 100%);
     --gradient-moonlight: radial-gradient(circle, hsl(210, 100%, 96%) 0%, transparent 70%);
 
-    /* Shadows and glows */
+    /* Shadows - Dark */
     --shadow-glow: 0 0 30px hsl(192, 75%, 59% / 0.5);
     --shadow-card: 0 8px 32px hsl(220, 85%, 4% / 0.6);
     --shadow-float: 0 12px 48px hsl(192, 75%, 59% / 0.3);
 
-    --sidebar-background: 220 75% 10%;
-    --sidebar-foreground: 210 100% 94%;
-    --sidebar-primary: 220 62% 13%;
-    --sidebar-primary-foreground: 210 100% 94%;
-    --sidebar-accent: 220 55% 18%;
-    --sidebar-accent-foreground: 210 100% 94%;
-    --sidebar-border: 220 40% 25%;
-    --sidebar-ring: 192 75% 59%;
-  }
-
-  .dark {
-    /* Already using dark theme by default */
-    --background: 220 85% 8%;
-    --foreground: 210 100% 94%;
-    --card: 220 75% 12%;
-    --card-foreground: 210 100% 94%;
-    --popover: 220 75% 10%;
-    --popover-foreground: 210 100% 94%;
-    --primary: 220 62% 13%;
-    --primary-foreground: 210 100% 94%;
-    --secondary: 220 55% 18%;
-    --secondary-foreground: 210 100% 94%;
-    --muted: 220 50% 20%;
-    --muted-foreground: 210 50% 70%;
-    --accent: 192 75% 59%;
-    --accent-foreground: 220 62% 13%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 100% 94%;
-    --border: 220 40% 25%;
-    --input: 220 40% 25%;
-    --ring: 192 75% 59%;
     --sidebar-background: 220 75% 10%;
     --sidebar-foreground: 210 100% 94%;
     --sidebar-primary: 220 62% 13%;

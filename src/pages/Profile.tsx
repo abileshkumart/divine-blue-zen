@@ -21,15 +21,19 @@ import {
   BarChart3,
   PieChart,
   TrendingDown,
-  Zap
+  Zap,
+  Heart,
+  Utensils
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { gutTypes, GutType } from "@/lib/gutHealth";
 import moonBg from "@/assets/moon-bg.jpg";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PullToRefresh from "@/components/PullToRefresh";
+import BottomNav from "@/components/BottomNav";
 
 interface Profile {
   display_name: string;
@@ -72,6 +76,8 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [userGutType, setUserGutType] = useState<GutType | null>(null);
+  const [gutCheckins, setGutCheckins] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -90,9 +96,24 @@ const Profile = () => {
     setIsLoadingData(true);
     await Promise.all([
       fetchProfile(),
-      fetchSessionLogs()
+      fetchSessionLogs(),
+      fetchGutData()
     ]);
     setIsLoadingData(false);
+  };
+
+  const fetchGutData = async () => {
+    // Get gut type from localStorage
+    const localGutType = localStorage.getItem('userGutType');
+    if (localGutType && gutTypes[localGutType]) {
+      setUserGutType(gutTypes[localGutType]);
+    }
+
+    // Get gut check-ins from localStorage
+    const checkins = localStorage.getItem('gutCheckins');
+    if (checkins) {
+      setGutCheckins(JSON.parse(checkins));
+    }
   };
 
   useEffect(() => {
@@ -405,7 +426,7 @@ const Profile = () => {
 
         {/* Tabs for Different Insights */}
         <Tabs defaultValue="activity" className="mb-6">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="activity" className="text-xs">
               <BarChart3 className="w-4 h-4 mr-1" />
               Activity
@@ -413,6 +434,10 @@ const Profile = () => {
             <TabsTrigger value="breakdown" className="text-xs">
               <PieChart className="w-4 h-4 mr-1" />
               Breakdown
+            </TabsTrigger>
+            <TabsTrigger value="gut" className="text-xs">
+              <Heart className="w-4 h-4 mr-1" />
+              Gut
             </TabsTrigger>
             <TabsTrigger value="insights" className="text-xs">
               <Zap className="w-4 h-4 mr-1" />
@@ -526,6 +551,107 @@ const Profile = () => {
                 </div>
               )}
             </Card>
+          </TabsContent>
+
+          {/* Gut Health Tab */}
+          <TabsContent value="gut" className="space-y-4">
+            {userGutType ? (
+              <>
+                {/* Current Gut Type */}
+                <Card className={`p-5 bg-gradient-to-br ${userGutType.color} border-green-500/30`}>
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl">{userGutType.emoji}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{userGutType.name}</h3>
+                      <p className="text-xs text-muted-foreground">{userGutType.nameHindi}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{userGutType.descriptionShort}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4 w-full"
+                    onClick={() => navigate('/gut/quiz')}
+                  >
+                    Retake Quiz
+                  </Button>
+                </Card>
+
+                {/* Gut Stats */}
+                <Card className="p-5 bg-card/80 backdrop-blur-sm border-accent/20">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Utensils className="w-5 h-5 text-green-500" />
+                    Gut Health Summary
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <div className="text-2xl font-bold text-green-500">{gutCheckins.length}</div>
+                      <p className="text-xs text-muted-foreground">Check-ins</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-500">
+                        {gutCheckins.length > 0 
+                          ? Math.round(gutCheckins.reduce((sum, c) => sum + (c.digestion || 0), 0) / gutCheckins.length)
+                          : '-'}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Avg Digestion</p>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Food Recommendations */}
+                <Card className="p-5 bg-card/80 backdrop-blur-sm border-accent/20">
+                  <h3 className="font-semibold mb-3">Foods to Focus On</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {userGutType.recommendedFoods.slice(0, 5).map((food, idx) => (
+                      <Badge key={idx} variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400">
+                        {food}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <h3 className="font-semibold mt-4 mb-3 text-red-400">Foods to Avoid</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {userGutType.avoidFoods.slice(0, 4).map((food, idx) => (
+                      <Badge key={idx} variant="outline" className="bg-red-500/10 border-red-500/30 text-red-400">
+                        {food}
+                      </Badge>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col gap-1"
+                    onClick={() => navigate('/gut/checkin')}
+                  >
+                    <Activity className="w-5 h-5" />
+                    <span className="text-xs">Daily Check-in</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col gap-1"
+                    onClick={() => navigate('/gut/recipes')}
+                  >
+                    <Utensils className="w-5 h-5" />
+                    <span className="text-xs">View Recipes</span>
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Card className="p-8 bg-gradient-to-br from-green-900/20 to-transparent border-green-500/30 text-center">
+                <div className="text-5xl mb-4">🔬</div>
+                <h3 className="text-lg font-semibold mb-2">Discover Your Gut Type</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Take a quick quiz to get personalized food recommendations.
+                </p>
+                <Button onClick={() => navigate('/gut/quiz')} className="bg-green-600 hover:bg-green-700">
+                  Start Gut Quiz
+                </Button>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Insights Tab */}
@@ -674,45 +800,7 @@ const Profile = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 p-4 z-50">
-        <div className="flex items-center justify-around max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/home')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <CalendarIcon className="w-6 h-6" />
-            <span className="text-xs">Home</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/calendar')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <CalendarIcon className="w-6 h-6" />
-            <span className="text-xs">Calendar</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/affirmation')}
-            className="flex flex-col gap-1 h-auto py-2"
-          >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-xs">Affirmations</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="flex flex-col gap-1 h-auto py-2 text-accent"
-          >
-            <User className="w-6 h-6" />
-            <span className="text-xs">Profile</span>
-          </Button>
-        </div>
-      </nav>
+      <BottomNav />
       </div>
     </PullToRefresh>
   );
