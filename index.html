@@ -2,33 +2,67 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WanderWithin - Your Inner Journey Companion</title>
-    <meta name="description" content="Discover peace within with WanderWithin - daily reflections, yoga practice tracking, moon phase guidance, and mindful affirmations for your spiritual journey" />
-    <meta name="author" content="WanderWithin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Divine Blue Zen - Mind-Gut Wellness</title>
+    <meta name="description" content="Divine Blue Zen - Your Mind-Gut Connection Wellness App. Meditation, Gut Health, Affirmations & Moon-synced practices for holistic wellbeing." />
+    <meta name="author" content="Divine Blue Zen" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#38BDF8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BlueZen" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Divine Blue Zen" />
+    <meta name="msapplication-TileColor" content="#0A1628" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
     
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-152x152.png" />
+    
+    <!-- Splash screens for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <meta property="og:title" content="WanderWithin - Your Inner Journey Companion" />
-    <meta property="og:description" content="Discover peace within with WanderWithin - daily reflections, yoga practice tracking, moon phase guidance, and mindful affirmations for your spiritual journey" />
+    <meta property="og:title" content="Divine Blue Zen - Mind-Gut Wellness" />
+    <meta property="og:description" content="Your Mind-Gut Connection Wellness App. Meditation, Gut Health, Affirmations & Moon-synced practices." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/placeholder.svg" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="WanderWithin - Your Inner Journey Companion" />
-    <meta name="twitter:description" content="Discover peace within with WanderWithin - daily reflections, yoga practice tracking, moon phase guidance, and mindful affirmations" />
-    <meta name="twitter:image" content="/placeholder.svg" />
+    <meta name="twitter:title" content="Divine Blue Zen - Mind-Gut Wellness" />
+    <meta name="twitter:description" content="Your Mind-Gut Connection Wellness App. Meditation, Gut Health, Affirmations." />
+    <meta name="twitter:image" content="/icons/icon-512x512.png" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Register Service Worker for PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
