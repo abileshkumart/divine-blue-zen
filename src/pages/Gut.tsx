@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
   Apple, ClipboardList, TrendingUp, ChevronRight, 
-  Sparkles, BookOpen, Calendar, Utensils, Heart
+  Sparkles, BookOpen, Calendar, Utensils, Heart, Flame
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { supabase } from "@/integrations/supabase/client";
+import { getGutProfile, getTodayCheckin, getCheckinStreak } from "@/lib/gutDatabase";
 import { gutTypes, getDailyTip, getRecipesForGutType, GutType, GutTip, Recipe } from "@/lib/gutHealth";
 import { cn } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
@@ -20,6 +20,8 @@ const Gut = () => {
   const [dailyTip, setDailyTip] = useState<GutTip | null>(null);
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
   const [checkingQuiz, setCheckingQuiz] = useState(true);
+  const [checkinStreak, setCheckinStreak] = useState(0);
+  const [todayCheckinDone, setTodayCheckinDone] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -27,56 +29,53 @@ const Gut = () => {
     }
   }, [user, loading, navigate]);
 
-  // Check if user has completed gut quiz
+  // Check if user has completed gut quiz and load data
   useEffect(() => {
-    const checkQuizStatus = async () => {
+    const loadUserData = async () => {
       if (!user) return;
       
       try {
-        // First check localStorage (faster, always works)
+        // First check localStorage (faster)
         const localGutType = localStorage.getItem('userGutType');
-        if (localGutType && gutTypes[localGutType]) {
-          console.log("Found gut type in localStorage:", localGutType);
-          setUserGutType(gutTypes[localGutType]);
-          setDailyTip(getDailyTip(localGutType));
-          setRecommendedRecipes(getRecipesForGutType(localGutType).slice(0, 4));
-          setCheckingQuiz(false);
-          return;
-        }
-
-        // Then check Supabase
-        const { data, error } = await supabase
-          .from("daily_reflections")
-          .select("mood")
-          .eq("user_id", user.id)
-          .like("reflection_text", "Gut Type Quiz Result:%")
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        console.log("Supabase gut type query result:", data, error);
-
-        if (data && data.length > 0 && data[0].mood) {
-          const gutTypeId = data[0].mood;
+        
+        // Then check database for gut profile
+        const profile = await getGutProfile(user.id);
+        
+        if (profile) {
+          const gutTypeId = profile.gut_type;
           const gutType = gutTypes[gutTypeId];
           if (gutType) {
-            // Also save to localStorage for faster future access
             localStorage.setItem('userGutType', gutTypeId);
             setUserGutType(gutType);
             setDailyTip(getDailyTip(gutTypeId));
             setRecommendedRecipes(getRecipesForGutType(gutTypeId).slice(0, 4));
           }
+        } else if (localGutType && gutTypes[localGutType]) {
+          // Fallback to localStorage
+          console.log("Found gut type in localStorage:", localGutType);
+          setUserGutType(gutTypes[localGutType]);
+          setDailyTip(getDailyTip(localGutType));
+          setRecommendedRecipes(getRecipesForGutType(localGutType).slice(0, 4));
         } else {
           setDailyTip(getDailyTip());
         }
+
+        // Check today's checkin and streak
+        const todayCheckin = await getTodayCheckin(user.id);
+        setTodayCheckinDone(!!todayCheckin);
+        
+        const streak = await getCheckinStreak(user.id);
+        setCheckinStreak(streak);
+        
       } catch (error) {
-        console.error("Error checking quiz status:", error);
+        console.error("Error loading user data:", error);
         setDailyTip(getDailyTip());
       }
       setCheckingQuiz(false);
     };
 
     if (user) {
-      checkQuizStatus();
+      loadUserData();
     }
   }, [user]);
 
@@ -141,15 +140,47 @@ const Gut = () => {
               </div>
             </Card>
 
+            {/* Streak & Status Bar */}
+            <div className="flex gap-3">
+              <Card className={cn(
+                "flex-1 p-3 border-border/50",
+                todayCheckinDone ? "bg-green-500/10 border-green-500/30" : "bg-muted/30"
+              )}>
+                <div className="flex items-center gap-2">
+                  <ClipboardList className={cn(
+                    "w-5 h-5",
+                    todayCheckinDone ? "text-green-400" : "text-muted-foreground"
+                  )} />
+                  <div className="text-sm">
+                    {todayCheckinDone ? "✓ Checked in today" : "Check in today"}
+                  </div>
+                </div>
+              </Card>
+              {checkinStreak > 0 && (
+                <Card className="p-3 bg-orange-500/10 border-orange-500/30 flex items-center gap-2">
+                  <Flame className="w-5 h-5 text-orange-400" />
+                  <div>
+                    <span className="font-bold text-orange-400">{checkinStreak}</span>
+                    <span className="text-xs text-muted-foreground ml-1">day streak</span>
+                  </div>
+                </Card>
+              )}
+            </div>
+
             {/* Quick Actions Grid */}
             <div className="grid grid-cols-2 gap-3">
               <Card 
-                className="p-4 bg-gradient-to-br from-blue-500/20 to-transparent border-blue-500/40 cursor-pointer hover:scale-[1.02] transition-all"
+                className={cn(
+                  "p-4 bg-gradient-to-br from-blue-500/20 to-transparent border-blue-500/40 cursor-pointer hover:scale-[1.02] transition-all",
+                  todayCheckinDone && "opacity-75"
+                )}
                 onClick={() => navigate('/gut/checkin')}
               >
                 <ClipboardList className="w-7 h-7 text-blue-400 mb-2" />
                 <h3 className="font-semibold text-sm">Daily Check-in</h3>
-                <p className="text-xs text-muted-foreground">Log how you feel</p>
+                <p className="text-xs text-muted-foreground">
+                  {todayCheckinDone ? "Done! Update anytime" : "Log how you feel"}
+                </p>
               </Card>
 
               <Card 

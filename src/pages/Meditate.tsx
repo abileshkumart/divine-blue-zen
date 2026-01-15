@@ -1,20 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Moon, Play, Clock, Wind, Sparkles, BookOpen, 
-  Calendar as CalendarIcon, ChevronRight
+  Calendar as CalendarIcon, ChevronRight, Plus,
+  Activity, Brain, Dumbbell, Check, Flower2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { getMoonPhase, getMoonTheme, MoonPhaseInfo } from "@/lib/moonPhase";
 import MeditationTimer from "@/components/MeditationTimer";
 import MantraCard from "@/components/MantraCard";
 import ManifestationLogger from "@/components/ManifestationLogger";
 import { BreathingExercise } from "@/components/breathing-exercise";
+import { CreateSessionForm } from "@/components/CreateSessionForm";
+import ChakraFlow from "@/components/ChakraFlow";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
+import type { Session } from "@/types/session";
 
 interface SessionType {
   id: string;
@@ -23,7 +29,12 @@ interface SessionType {
   icon: React.ReactNode;
   duration: number;
   color: string;
-  type: "meditation" | "breathing" | "manifestation";
+  type: "meditation" | "breathing" | "manifestation" | "chakra";
+}
+
+interface SessionLog {
+  session_id: string;
+  log_date: string;
 }
 
 const Meditate = () => {
@@ -34,7 +45,14 @@ const Meditate = () => {
   const [showTimer, setShowTimer] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
   const [showManifestation, setShowManifestation] = useState(false);
+  const [showChakra, setShowChakra] = useState(false);
   const [selectedSession, setSelectedSession] = useState<SessionType | null>(null);
+  
+  // User Sessions State
+  const [userSessions, setUserSessions] = useState<Session[]>([]);
+  const [todayLogs, setTodayLogs] = useState<SessionLog[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+  const [showCreateSession, setShowCreateSession] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -48,6 +66,90 @@ const Meditate = () => {
     setMoonTheme(getMoonTheme(phase.phase));
   }, []);
 
+  // Fetch user's custom sessions for today
+  const fetchUserSessions = async () => {
+    if (!user) return;
+    
+    setIsLoadingSessions(true);
+    try {
+      const today = new Date();
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const todayName = dayNames[today.getDay()];
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Fetch all active sessions
+      const { data: sessions } = await supabase
+        .from('sessions' as any)
+        .select('*')
+        .eq('is_active', true)
+        .order('scheduled_time', { ascending: true });
+
+      if (sessions) {
+        // Filter sessions scheduled for today
+        const todaySessions = (sessions as unknown as Session[]).filter(s => 
+          s.days_of_week.some(d => d.toLowerCase().startsWith(todayName.toLowerCase()))
+        );
+        setUserSessions(todaySessions);
+      }
+
+      // Fetch today's completion logs
+      const { data: logs } = await supabase
+        .from('session_logs' as any)
+        .select('session_id, log_date')
+        .eq('user_id', user.id)
+        .eq('log_date', todayStr);
+
+      if (logs) {
+        setTodayLogs(logs as unknown as SessionLog[]);
+      }
+    } catch (error) {
+      console.log('Error fetching sessions:', error);
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchUserSessions();
+    }
+  }, [user]);
+
+  const getSessionIcon = (type: string) => {
+    switch (type) {
+      case 'yoga': return Activity;
+      case 'meditation': return Brain;
+      case 'stretching': return Dumbbell;
+      case 'breathing': return Wind;
+      default: return Sparkles;
+    }
+  };
+
+  const getSessionColor = (type: string) => {
+    switch (type) {
+      case 'yoga': return 'from-purple-500 to-purple-600';
+      case 'meditation': return 'from-blue-500 to-blue-600';
+      case 'stretching': return 'from-green-500 to-green-600';
+      case 'breathing': return 'from-cyan-500 to-cyan-600';
+      default: return 'from-accent to-indigo';
+    }
+  };
+
+  const isSessionCompleted = (sessionId: string) => {
+    return todayLogs.some(log => log.session_id === sessionId);
+  };
+
+  const handleStartUserSession = (session: Session) => {
+    navigate('/session-tracker', { 
+      state: { session, date: new Date().toISOString() } 
+    });
+  };
+
+  const handleSessionCreated = () => {
+    setShowCreateSession(false);
+    fetchUserSessions();
+  };
+
   const handleSessionStart = (session: SessionType) => {
     setSelectedSession(session);
     if (session.type === "meditation") {
@@ -56,10 +158,21 @@ const Meditate = () => {
       setShowBreathing(true);
     } else if (session.type === "manifestation") {
       setShowManifestation(true);
+    } else if (session.type === "chakra") {
+      setShowChakra(true);
     }
   };
 
   const sessions: SessionType[] = [
+    {
+      id: "chakra",
+      title: "Chakra Healing",
+      description: "Balance your energy centers",
+      icon: <Flower2 className="w-6 h-6" />,
+      duration: 15,
+      color: "from-rose-500/20 to-violet-500/20",
+      type: "chakra",
+    },
     {
       id: "moon-sync",
       title: "Moon-Synced",
@@ -189,6 +302,120 @@ const Meditate = () => {
           </div>
         </div>
 
+        {/* My Sessions - Today's Schedule */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Today's Sessions
+            </h3>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCreateSession(true)}
+                className="text-accent text-xs h-7 px-2"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/sessions')}
+                className="text-muted-foreground text-xs h-7 px-2"
+              >
+                View All
+                <ChevronRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+          </div>
+
+          {isLoadingSessions ? (
+            <Card className="p-4 bg-card/60 border-border/50">
+              <div className="flex items-center justify-center py-4">
+                <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+              </div>
+            </Card>
+          ) : userSessions.length > 0 ? (
+            <div className="space-y-2">
+              {userSessions.map((session) => {
+                const Icon = getSessionIcon(session.session_type);
+                const isCompleted = isSessionCompleted(session.id);
+                
+                return (
+                  <Card 
+                    key={session.id}
+                    className={cn(
+                      "p-3 transition-all",
+                      isCompleted 
+                        ? "bg-green-500/10 border-green-500/30" 
+                        : "bg-card/60 border-border/50 hover:bg-card/80"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "p-2 rounded-lg bg-gradient-to-br",
+                          getSessionColor(session.session_type)
+                        )}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm">{session.session_name}</h4>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span>{session.scheduled_time}</span>
+                            <span>•</span>
+                            <span>{session.duration_minutes} min</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {isCompleted ? (
+                        <div className="flex items-center gap-1 text-green-500">
+                          <Check className="w-5 h-5" />
+                          <span className="text-xs font-medium">Done</span>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => handleStartUserSession(session)}
+                          className="bg-gradient-to-r from-accent to-indigo hover:from-accent/90 hover:to-indigo/90"
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Start
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="p-5 bg-card/60 border-border/50 text-center">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
+                  <CalendarIcon className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">No sessions for today</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Create personalized sessions to build your routine
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setShowCreateSession(true)}
+                  className="bg-gradient-to-r from-accent to-indigo"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Create Session
+                </Button>
+              </div>
+            </Card>
+          )}
+        </div>
+
         {/* Daily Mantra */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -274,6 +501,26 @@ const Meditate = () => {
         moonPhase={moonPhase?.phase}
         moonEmoji={moonPhase?.emoji}
       />
+
+      {/* Chakra Healing Flow */}
+      {showChakra && (
+        <ChakraFlow onClose={() => setShowChakra(false)} />
+      )}
+
+      {/* Create Session Dialog */}
+      <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-accent/30">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-accent to-indigo bg-clip-text text-transparent">
+              Create New Session
+            </DialogTitle>
+          </DialogHeader>
+          <CreateSessionForm
+            onSuccess={handleSessionCreated}
+            onCancel={() => setShowCreateSession(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { supabase } from "@/integrations/supabase/client";
 import { gutTypes, getRecipesForGutType, GutType } from "@/lib/gutHealth";
+import { saveGutProfile, GutTypeId } from "@/lib/gutDatabase";
 import { cn } from "@/lib/utils";
 
 interface Question {
@@ -160,7 +160,7 @@ const GutQuiz = () => {
     // Find dominant type
     const dominantType = Object.entries(finalScores).reduce((a, b) => 
       a[1] > b[1] ? a : b
-    )[0];
+    )[0] as GutTypeId;
     
     setGutType(dominantType);
     setShowResult(true);
@@ -169,24 +169,23 @@ const GutQuiz = () => {
     localStorage.setItem('userGutType', dominantType);
     console.log("Gut type saved to localStorage:", dominantType);
 
-    // Save to database
+    // Save to gut_profiles table
     if (user) {
       setSaving(true);
       try {
-        const { data, error } = await supabase.from("daily_reflections").insert({
+        const result = await saveGutProfile({
           user_id: user.id,
-          reflection_text: `Gut Type Quiz Result: ${dominantType}`,
-          mood: dominantType,
-          reflection_date: new Date().toISOString().split("T")[0],
-        }).select();
+          gut_type: dominantType,
+          quiz_scores: finalScores,
+        });
         
-        if (error) {
-          console.error("Error saving gut type to Supabase:", error);
+        if (result) {
+          console.log("Gut profile saved to database:", result);
         } else {
-          console.log("Gut type saved to Supabase:", data);
+          console.error("Failed to save gut profile to database");
         }
       } catch (error) {
-        console.error("Error saving gut type:", error);
+        console.error("Error saving gut profile:", error);
       }
       setSaving(false);
     }

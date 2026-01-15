@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Sunrise, Moon, Sparkles, Heart, User } from "lucide-react";
+import { Sunrise, Sparkles, Heart, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import MeditateIcon from "@/components/icons/MeditateIcon";
 
 const BottomNav = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const BottomNav = () => {
 
   const navItems = [
     { path: '/home', icon: Sunrise, label: 'Home' },
-    { path: '/meditate', icon: Moon, label: 'Meditate' },
+    { path: '/meditate', icon: MeditateIcon, label: 'Meditate' },
     { path: '/idea', icon: Sparkles, label: 'Idea' },
     { path: '/gut', icon: Heart, label: 'Gut' },
     { path: '/profile', icon: User, label: 'Profile' },

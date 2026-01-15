@@ -1,12 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Clock, Flame, Leaf, Search, Filter, ChevronDown, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, Flame, Leaf, Search, Filter, ChevronDown, Heart, Share2, Star, ChefHat } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { recipes, Recipe, gutTypes } from "@/lib/gutHealth";
-import { supabase } from "@/integrations/supabase/client";
+import { 
+  getGutProfile, 
+  getSavedRecipes, 
+  toggleRecipeFavorite, 
+  rateRecipe, 
+  markRecipeCooked,
+  GutSavedRecipe 
+} from "@/lib/gutDatabase";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const mealTypeEmojis: Record<string, string> = {
@@ -19,12 +27,14 @@ const mealTypeEmojis: Record<string, string> = {
 const GutRecipes = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { toast } = useToast();
   const [userGutType, setUserGutType] = useState<string | null>(null);
   const [selectedMealType, setSelectedMealType] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [likedRecipes, setLikedRecipes] = useState<Set<string>>(new Set());
+  const [savedRecipesData, setSavedRecipesData] = useState<Map<string, GutSavedRecipe>>(new Map());
 
   useEffect(() => {
     if (!loading && !user) {
@@ -32,30 +42,39 @@ const GutRecipes = () => {
     }
   }, [user, loading, navigate]);
 
-  // Check user's gut type
+  // Load user's gut profile and saved recipes
   useEffect(() => {
-    const checkGutType = async () => {
+    const loadUserData = async () => {
       if (!user) return;
       
       try {
-        const { data } = await supabase
-          .from("daily_reflections")
-          .select("mood")
-          .eq("user_id", user.id)
-          .like("reflection_text", "Gut Type Quiz Result:%")
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        if (data && data.length > 0 && data[0].mood) {
-          setUserGutType(data[0].mood);
+        // Get gut profile from database
+        const profile = await getGutProfile(user.id);
+        if (profile) {
+          setUserGutType(profile.gut_type);
+        } else {
+          // Fallback to localStorage
+          const localGutType = localStorage.getItem('userGutType');
+          if (localGutType) setUserGutType(localGutType);
         }
+
+        // Get saved recipes
+        const saved = await getSavedRecipes(user.id);
+        const savedMap = new Map<string, GutSavedRecipe>();
+        const likedSet = new Set<string>();
+        saved.forEach(sr => {
+          savedMap.set(sr.recipe_id, sr);
+          if (sr.is_favorite) likedSet.add(sr.recipe_id);
+        });
+        setSavedRecipesData(savedMap);
+        setLikedRecipes(likedSet);
       } catch (error) {
-        console.error("Error checking gut type:", error);
+        console.error("Error loading user data:", error);
       }
     };
 
     if (user) {
-      checkGutType();
+      loadUserData();
     }
   }, [user]);
 
@@ -79,16 +98,37 @@ const GutRecipes = () => {
     return bMatch - aMatch;
   });
 
-  const toggleLike = (recipeId: string) => {
+  const toggleLike = async (recipeId: string) => {
+    if (!user) return;
+    
+    const isSaved = await toggleRecipeFavorite(user.id, recipeId);
     setLikedRecipes(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(recipeId)) {
-        newSet.delete(recipeId);
-      } else {
+      if (isSaved) {
         newSet.add(recipeId);
+        toast({ title: "Recipe saved! ❤️" });
+      } else {
+        newSet.delete(recipeId);
+        toast({ title: "Recipe removed from favorites" });
       }
       return newSet;
     });
+  };
+
+  const handleRateRecipe = async (recipeId: string, rating: number) => {
+    if (!user) return;
+    const success = await rateRecipe(user.id, recipeId, rating);
+    if (success) {
+      toast({ title: `Rated ${rating} stars! ⭐` });
+    }
+  };
+
+  const handleMarkCooked = async (recipeId: string) => {
+    if (!user) return;
+    const success = await markRecipeCooked(user.id, recipeId);
+    if (success) {
+      toast({ title: "Marked as cooked! 👨‍🍳" });
+    }
   };
 
   if (loading) {
@@ -242,6 +282,36 @@ const GutRecipes = () => {
                selectedRecipe.cost === "medium" ? "₹₹ Moderate" : "₹₹₹ Premium"}
             </span>
           </div>
+
+          {/* Rating & Actions */}
+          <Card className="p-4 bg-card/80 border-border/50">
+            <h3 className="font-semibold text-sm mb-3">Rate this recipe</h3>
+            <div className="flex gap-2 mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Button
+                  key={star}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRateRecipe(selectedRecipe.id, star)}
+                  className="p-1"
+                >
+                  <Star className={cn(
+                    "w-6 h-6",
+                    (savedRecipesData.get(selectedRecipe.id)?.rating || 0) >= star 
+                      ? "fill-yellow-400 text-yellow-400" 
+                      : "text-muted-foreground"
+                  )} />
+                </Button>
+              ))}
+            </div>
+            <Button 
+              onClick={() => handleMarkCooked(selectedRecipe.id)}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              <ChefHat className="w-4 h-4 mr-2" />
+              I Made This!
+            </Button>
+          </Card>
         </main>
       </div>
     );

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { supabase } from "@/integrations/supabase/client";
+import { saveGutCheckin, getTodayCheckin, BowelMovement, Bloating } from "@/lib/gutDatabase";
 import { useToast } from "@/hooks/use-toast";
 import { symptomOptions } from "@/lib/gutHealth";
 import { cn } from "@/lib/utils";
@@ -64,6 +64,28 @@ const GutCheckin = () => {
     );
   };
 
+  // Load existing check-in for today
+  useEffect(() => {
+    const loadTodayCheckin = async () => {
+      if (!user) return;
+      try {
+        const existing = await getTodayCheckin(user.id);
+        if (existing) {
+          setOverallFeeling(existing.overall_feeling);
+          setBowelMovement(existing.bowel_movement);
+          setBloating(existing.bloating);
+          setSelectedSymptoms(existing.symptoms || []);
+          setEnergyLevel(existing.energy_level);
+          setStressLevel(existing.stress_level);
+          setNotes(existing.notes || "");
+        }
+      } catch (error) {
+        console.error("Error loading today's checkin:", error);
+      }
+    };
+    if (user) loadTodayCheckin();
+  }, [user]);
+
   const handleSubmit = async () => {
     if (!user || !overallFeeling) {
       toast({ title: "Please rate how you're feeling", variant: "destructive" });
@@ -72,24 +94,19 @@ const GutCheckin = () => {
 
     setSaving(true);
     try {
-      const checkInData = {
-        overallFeeling,
-        bowelMovement,
-        bloating,
-        symptoms: selectedSymptoms,
-        energyLevel,
-        stressLevel,
-        notes,
-      };
-
-      const { error } = await supabase.from("daily_reflections").insert({
+      const result = await saveGutCheckin({
         user_id: user.id,
-        reflection_text: `Gut Check-in: ${JSON.stringify(checkInData)}`,
-        mood: `gut-checkin-${overallFeeling}`,
-        reflection_date: new Date().toISOString().split("T")[0],
+        checkin_date: new Date().toISOString().split("T")[0],
+        overall_feeling: overallFeeling,
+        bowel_movement: bowelMovement as BowelMovement,
+        bloating: bloating as Bloating,
+        symptoms: selectedSymptoms,
+        energy_level: energyLevel ?? undefined,
+        stress_level: stressLevel ?? undefined,
+        notes: notes || undefined,
       });
 
-      if (error) throw error;
+      if (!result) throw new Error("Failed to save checkin");
 
       setSaved(true);
       toast({ title: "Check-in saved! 🎉" });

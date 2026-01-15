@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { generateWeeklyMealPlan, gutTypes, Recipe } from "@/lib/gutHealth";
-import { supabase } from "@/integrations/supabase/client";
+import { getGutProfile, getActiveMealPlan, GutMealPlan as GutMealPlanType, GutTypeId } from "@/lib/gutDatabase";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -43,25 +43,37 @@ const GutMealPlan = () => {
     }
   }, [user, loading, navigate]);
 
-  // Check user's gut type and generate meal plan
+  // Check user's gut type and load/generate meal plan
   useEffect(() => {
     const initializeMealPlan = async () => {
       if (!user) return;
       
       try {
-        const { data } = await supabase
-          .from("daily_reflections")
-          .select("mood")
-          .eq("user_id", user.id)
-          .like("reflection_text", "Gut Type Quiz Result:%")
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        if (data && data.length > 0 && data[0].mood) {
-          const gutTypeId = data[0].mood;
+        // Get gut profile from database
+        const profile = await getGutProfile(user.id);
+        let gutTypeId: string | null = profile?.gut_type || null;
+        
+        // Fallback to localStorage
+        if (!gutTypeId) {
+          gutTypeId = localStorage.getItem('userGutType');
+        }
+        
+        if (gutTypeId) {
           setUserGutType(gutTypeId);
-          const plan = generateWeeklyMealPlan(gutTypeId, { isVegetarian: true });
-          setMealPlan(plan);
+          
+          // Check for existing active meal plan
+          const existingPlan = await getActiveMealPlan(user.id);
+          
+          if (existingPlan && existingPlan.plan_data) {
+            // Convert stored plan back to MealPlanDay format
+            // For now, just regenerate (plan data format may differ)
+            const plan = generateWeeklyMealPlan(gutTypeId, { isVegetarian: true });
+            setMealPlan(plan);
+          } else {
+            const plan = generateWeeklyMealPlan(gutTypeId, { isVegetarian: true });
+            setMealPlan(plan);
+          }
+          
           // Expand today's day
           const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
           setExpandedDay(today);

@@ -21,6 +21,8 @@ import GutMealPlan from "./pages/GutMealPlan";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Sessions from "./pages/Sessions";
+import SessionTracker from "./pages/SessionTracker";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -49,6 +51,8 @@ const App = () => (
                 <Route path="/gut/learn" element={<GutLearn />} />
                 <Route path="/gut/mealplan" element={<GutMealPlan />} />
                 <Route path="/calendar" element={<Calendar />} />
+                <Route path="/sessions" element={<Sessions />} />
+                <Route path="/session-tracker" element={<SessionTracker />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />

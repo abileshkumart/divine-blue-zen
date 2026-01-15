@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { dailyGutTips, GutTip, gutTypes } from "@/lib/gutHealth";
-import { supabase } from "@/integrations/supabase/client";
+import { getGutProfile } from "@/lib/gutDatabase";
 import { cn } from "@/lib/utils";
 
 const categoryIcons: Record<string, typeof Lightbulb> = {
@@ -48,20 +48,17 @@ const GutLearn = () => {
 
   // Check user's gut type
   useEffect(() => {
-    const checkGutType = async () => {
+    const loadGutType = async () => {
       if (!user) return;
       
       try {
-        const { data } = await supabase
-          .from("daily_reflections")
-          .select("mood")
-          .eq("user_id", user.id)
-          .like("reflection_text", "Gut Type Quiz Result:%")
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        if (data && data.length > 0 && data[0].mood) {
-          setUserGutType(data[0].mood);
+        const profile = await getGutProfile(user.id);
+        if (profile) {
+          setUserGutType(profile.gut_type);
+        } else {
+          // Fallback to localStorage
+          const localGutType = localStorage.getItem('userGutType');
+          if (localGutType) setUserGutType(localGutType);
         }
       } catch (error) {
         console.error("Error checking gut type:", error);
@@ -69,7 +66,7 @@ const GutLearn = () => {
     };
 
     if (user) {
-      checkGutType();
+      loadGutType();
     }
   }, [user]);
 

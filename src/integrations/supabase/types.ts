@@ -98,6 +98,366 @@ export type Database = {
         }
         Relationships: []
       }
+      gut_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          gut_type: 'balanced' | 'fiery' | 'airy' | 'slow' | 'inflamed' | 'lowFermenter'
+          quiz_completed_at: string | null
+          quiz_scores: Record<string, number> | null
+          dietary_preferences: {
+            isVegetarian?: boolean
+            isVegan?: boolean
+            allergens?: string[]
+          } | null
+          goals: string[] | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          gut_type: 'balanced' | 'fiery' | 'airy' | 'slow' | 'inflamed' | 'lowFermenter'
+          quiz_completed_at?: string | null
+          quiz_scores?: Record<string, number> | null
+          dietary_preferences?: {
+            isVegetarian?: boolean
+            isVegan?: boolean
+            allergens?: string[]
+          } | null
+          goals?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          gut_type?: 'balanced' | 'fiery' | 'airy' | 'slow' | 'inflamed' | 'lowFermenter'
+          quiz_completed_at?: string | null
+          quiz_scores?: Record<string, number> | null
+          dietary_preferences?: {
+            isVegetarian?: boolean
+            isVegan?: boolean
+            allergens?: string[]
+          } | null
+          goals?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gut_checkins: {
+        Row: {
+          id: string
+          user_id: string
+          checkin_date: string
+          overall_feeling: number | null
+          energy_level: number | null
+          stress_level: number | null
+          bowel_movement: 'none' | 'constipated' | 'normal' | 'loose' | 'mixed' | null
+          bowel_frequency: number | null
+          bloating: 'none' | 'mild' | 'moderate' | 'severe' | null
+          symptoms: string[] | null
+          water_intake: number | null
+          sleep_quality: number | null
+          exercise_done: boolean | null
+          notes: string | null
+          triggers: string[] | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          checkin_date?: string
+          overall_feeling?: number | null
+          energy_level?: number | null
+          stress_level?: number | null
+          bowel_movement?: 'none' | 'constipated' | 'normal' | 'loose' | 'mixed' | null
+          bowel_frequency?: number | null
+          bloating?: 'none' | 'mild' | 'moderate' | 'severe' | null
+          symptoms?: string[] | null
+          water_intake?: number | null
+          sleep_quality?: number | null
+          exercise_done?: boolean | null
+          notes?: string | null
+          triggers?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          checkin_date?: string
+          overall_feeling?: number | null
+          energy_level?: number | null
+          stress_level?: number | null
+          bowel_movement?: 'none' | 'constipated' | 'normal' | 'loose' | 'mixed' | null
+          bowel_frequency?: number | null
+          bloating?: 'none' | 'mild' | 'moderate' | 'severe' | null
+          symptoms?: string[] | null
+          water_intake?: number | null
+          sleep_quality?: number | null
+          exercise_done?: boolean | null
+          notes?: string | null
+          triggers?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gut_meal_logs: {
+        Row: {
+          id: string
+          user_id: string
+          log_date: string
+          meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'drink'
+          meal_time: string | null
+          recipe_id: string | null
+          meal_description: string | null
+          foods: string[] | null
+          portion_size: 'small' | 'medium' | 'large' | 'very_large' | null
+          satisfaction: number | null
+          post_meal_feeling: 'great' | 'good' | 'okay' | 'uncomfortable' | 'bad' | null
+          post_meal_symptoms: string[] | null
+          photo_url: string | null
+          notes: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          log_date?: string
+          meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'drink'
+          meal_time?: string | null
+          recipe_id?: string | null
+          meal_description?: string | null
+          foods?: string[] | null
+          portion_size?: 'small' | 'medium' | 'large' | 'very_large' | null
+          satisfaction?: number | null
+          post_meal_feeling?: 'great' | 'good' | 'okay' | 'uncomfortable' | 'bad' | null
+          post_meal_symptoms?: string[] | null
+          photo_url?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          log_date?: string
+          meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'drink'
+          meal_time?: string | null
+          recipe_id?: string | null
+          meal_description?: string | null
+          foods?: string[] | null
+          portion_size?: 'small' | 'medium' | 'large' | 'very_large' | null
+          satisfaction?: number | null
+          post_meal_feeling?: 'great' | 'good' | 'okay' | 'uncomfortable' | 'bad' | null
+          post_meal_symptoms?: string[] | null
+          photo_url?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gut_saved_recipes: {
+        Row: {
+          id: string
+          user_id: string
+          recipe_id: string
+          is_favorite: boolean | null
+          times_cooked: number | null
+          last_cooked_at: string | null
+          personal_notes: string | null
+          rating: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          recipe_id: string
+          is_favorite?: boolean | null
+          times_cooked?: number | null
+          last_cooked_at?: string | null
+          personal_notes?: string | null
+          rating?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          recipe_id?: string
+          is_favorite?: boolean | null
+          times_cooked?: number | null
+          last_cooked_at?: string | null
+          personal_notes?: string | null
+          rating?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gut_meal_plans: {
+        Row: {
+          id: string
+          user_id: string
+          week_start_date: string
+          gut_type: string
+          plan_data: {
+            day: string
+            meals: {
+              breakfast?: string
+              lunch?: string
+              dinner?: string
+              snack?: string
+            }
+          }[]
+          preferences: {
+            isVegetarian?: boolean
+            isVegan?: boolean
+            avoidAllergens?: string[]
+          } | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          week_start_date: string
+          gut_type: string
+          plan_data: {
+            day: string
+            meals: {
+              breakfast?: string
+              lunch?: string
+              dinner?: string
+              snack?: string
+            }
+          }[]
+          preferences?: {
+            isVegetarian?: boolean
+            isVegan?: boolean
+            avoidAllergens?: string[]
+          } | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          week_start_date?: string
+          gut_type?: string
+          plan_data?: {
+            day: string
+            meals: {
+              breakfast?: string
+              lunch?: string
+              dinner?: string
+              snack?: string
+            }
+          }[]
+          preferences?: {
+            isVegetarian?: boolean
+            isVegan?: boolean
+            avoidAllergens?: string[]
+          } | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gut_food_diary: {
+        Row: {
+          id: string
+          user_id: string
+          entry_date: string
+          entry_time: string | null
+          food_item: string
+          food_category: 'grain' | 'protein' | 'dairy' | 'vegetable' | 'fruit' | 'legume' | 'fermented' | 'spice' | 'drink' | 'sweet' | 'other' | null
+          is_recommended: boolean | null
+          reaction: 'good' | 'neutral' | 'bad' | null
+          notes: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          entry_date?: string
+          entry_time?: string | null
+          food_item: string
+          food_category?: 'grain' | 'protein' | 'dairy' | 'vegetable' | 'fruit' | 'legume' | 'fermented' | 'spice' | 'drink' | 'sweet' | 'other' | null
+          is_recommended?: boolean | null
+          reaction?: 'good' | 'neutral' | 'bad' | null
+          notes?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          entry_date?: string
+          entry_time?: string | null
+          food_item?: string
+          food_category?: 'grain' | 'protein' | 'dairy' | 'vegetable' | 'fruit' | 'legume' | 'fermented' | 'spice' | 'drink' | 'sweet' | 'other' | null
+          is_recommended?: boolean | null
+          reaction?: 'good' | 'neutral' | 'bad' | null
+          notes?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      gut_insights: {
+        Row: {
+          id: string
+          user_id: string
+          insight_type: 'pattern' | 'trigger' | 'improvement' | 'recommendation' | 'streak' | 'weekly_summary'
+          title: string
+          content: string
+          severity: 'info' | 'success' | 'warning' | 'alert' | null
+          is_read: boolean | null
+          is_dismissed: boolean | null
+          source_data: Record<string, unknown> | null
+          valid_from: string | null
+          valid_until: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          insight_type: 'pattern' | 'trigger' | 'improvement' | 'recommendation' | 'streak' | 'weekly_summary'
+          title: string
+          content: string
+          severity?: 'info' | 'success' | 'warning' | 'alert' | null
+          is_read?: boolean | null
+          is_dismissed?: boolean | null
+          source_data?: Record<string, unknown> | null
+          valid_from?: string | null
+          valid_until?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          insight_type?: 'pattern' | 'trigger' | 'improvement' | 'recommendation' | 'streak' | 'weekly_summary'
+          title?: string
+          content?: string
+          severity?: 'info' | 'success' | 'warning' | 'alert' | null
+          is_read?: boolean | null
+          is_dismissed?: boolean | null
+          source_data?: Record<string, unknown> | null
+          valid_from?: string | null
+          valid_until?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       session_logs: {
         Row: {
           completed_at: string | null
@@ -180,10 +540,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      gut_health_trends: {
+        Row: {
+          user_id: string
+          checkin_date: string
+          overall_feeling: number | null
+          energy_level: number | null
+          stress_level: number | null
+          bloating: string | null
+          bowel_movement: string | null
+          symptom_count: number | null
+        }
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_gut_checkin_streak: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      get_weekly_gut_summary: {
+        Args: { p_user_id: string }
+        Returns: {
+          avg_feeling: number
+          avg_energy: number
+          total_checkins: number
+          most_common_symptoms: string[]
+          streak: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
